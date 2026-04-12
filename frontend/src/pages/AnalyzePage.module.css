@@ -1,0 +1,67 @@
+.errorBox {
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--red);
+  margin-bottom: 20px;
+}
+
+/* Empty state */
+.emptyState {
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--text3);
+}
+
+.emptyIcon {
+  font-size: 40px;
+  margin-bottom: 12px;
+  opacity: 0.35;
+}
+
+.emptyTitle {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+  color: var(--text2);
+}
+
+.emptySub {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text3);
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 16px;
+}
+
+.tab {
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-size: 12px;
+  padding: 6px 16px;
+  border-radius: var(--radius-md);
+  transition: all 0.15s;
+}
+
+.tab:hover    { color: var(--text2); background: var(--bg2); }
+.tabActive    { background: var(--bg2); color: var(--text); }
+
+/* Model cards grid */
+.cardGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 860px) {
+  .cardGrid { grid-template-columns: 1fr; }
+}

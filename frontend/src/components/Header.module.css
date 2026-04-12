@@ -1,0 +1,89 @@
+.header {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text);
+}
+
+.logoDot {
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--accent);
+  animation: pulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.6; transform: scale(0.85); }
+}
+
+.nav {
+  display: flex;
+  gap: 4px;
+}
+
+.navBtn {
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-size: 12px;
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  transition: all 0.15s;
+  text-transform: capitalize;
+}
+
+.navBtn:hover {
+  background: var(--bg3);
+  color: var(--text);
+}
+
+.navBtn.active {
+  background: var(--bg3);
+  color: var(--accent);
+}
+
+/* Status badge */
+.statusBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text3);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.idle    { background: var(--text3); }
+.live    { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.error   { background: var(--red); }
+.loading {
+  background: var(--amber);
+  animation: pulse 1s ease-in-out infinite;
+}

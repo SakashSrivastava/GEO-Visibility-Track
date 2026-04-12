@@ -1,0 +1,133 @@
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.card:hover {
+  border-color: var(--border2);
+}
+
+.header {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+
+.modelName {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.provider {
+  font-size: 10px;
+  color: var(--text3);
+  font-weight: 400;
+}
+
+.rank {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text3);
+  background: var(--bg3);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.body {
+  padding: 14px 16px;
+}
+
+/* Score bars */
+.scoreRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.scoreLabel {
+  font-size: 11px;
+  color: var(--text2);
+  min-width: 72px;
+  font-family: var(--font-mono);
+}
+
+.barWrap {
+  flex: 1;
+  background: var(--bg3);
+  border-radius: 4px;
+  height: 5px;
+  overflow: hidden;
+}
+
+.bar {
+  height: 100%;
+  border-radius: 4px;
+  width: 0%;
+  transition: width 0.9s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.scoreVal {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  min-width: 52px;
+  text-align: right;
+}
+
+/* Response snippet */
+.snippet {
+  background: var(--bg3);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.6;
+  max-height: 110px;
+  overflow-y: auto;
+}
+
+/* Keyword chips */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.chip {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+}
+
+.found {
+  background: rgba(52, 211, 153, 0.1);
+  color: var(--green);
+  border: 1px solid rgba(52, 211, 153, 0.25);
+}
+
+.missing {
+  background: rgba(248, 113, 113, 0.08);
+  color: var(--red);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  text-decoration: line-through;
+  opacity: 0.7;
+}
