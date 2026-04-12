@@ -53,6 +53,8 @@ Open http://localhost:5173
 ```
 ANTHROPIC_API_KEY=your_key_here
 SERPAPI_KEY=your_key_here        # optional, for real search rankings
+DATABASE_URL=sqlite+aiosqlite:///./geo_tracker.db
+CORS_ORIGINS=["http://localhost:5173"]
 ```
 
 ### frontend/.env
