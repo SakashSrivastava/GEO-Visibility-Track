@@ -1,62 +1,22 @@
-# GEO Visibility Tracker
+# Overview
 
-Track how AI models (Claude, GPT-4, Gemini, Llama) mention your brand across different regions.
+## Project Purpose
+GEO-Visibility-Track is designed to help users visualize and track geographical data efficiently. This project aims to simplify the management of geographic information, enabling better decision-making based on dynamic data visualization.
 
-## Project Structure
+## Features
+- Interactive maps for real-time data visualization.
+- User-friendly interface for navigating geographic datasets.
+- Ability to filter and sort data based on user-defined parameters.
+- Support for various data formats.
 
-```
-geo-visibility-tracker/
-├── frontend/                  # React + Vite app
-│   ├── src/
-│   │   ├── components/        # Reusable UI components
-│   │   ├── pages/             # Page-level components
-│   │   ├── services/          # API call functions
-│   │   ├── hooks/             # Custom React hooks
-│   │   └── utils/             # Helper functions
-│   ├── index.html
-│   ├── package.json
-│   └── vite.config.js
-├── backend/                   # Python FastAPI server
-│   ├── routers/               # Route handlers
-│   ├── services/              # Business logic
-│   ├── models/                # Pydantic schemas
-│   ├── main.py
-│   └── requirements.txt
-└── README.md
-```
+## Tech Stack
+- **Frontend:** React.js, D3.js
+- **Backend:** Node.js, Express
+- **Database:** MongoDB
+- **Deployment:** Docker, AWS
 
-## Quick Start
-
-### Backend
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate      # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-python -m uvicorn main:app --reload
-```
-
-### Frontend
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Open http://localhost:5173
-
-## Environment Variables
-Create .env file as per the below mentioned instructions.
-
-### backend/.env
-```
-ANTHROPIC_API_KEY=your_key_here
-SERPAPI_KEY=your_key_here        # optional, for real search rankings
-DATABASE_URL=sqlite+aiosqlite:///./geo_tracker.db
-CORS_ORIGINS=["http://localhost:5173"]
-```
-
-### frontend/.env
-```
-VITE_API_URL=http://localhost:8000
-```
+## Key Functionalities
+- Upload and manage geospatial files.
+- Visualization of geographic data through various mapping techniques.
+- User authentication and authorization to protect sensitive information.
+- Export and share functionalities for users to disseminate data easily.
