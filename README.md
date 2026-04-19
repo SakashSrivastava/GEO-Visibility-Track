@@ -110,7 +110,3 @@ VITE_API_URL=http://localhost:8000
 If you would like to contribute to this project, please fork the repository and submit a pull request.
 
 ---
-
-**Updated on**: 2026-04-19 14:30:52
-
-For more details, please refer to the changelog or documentation.
