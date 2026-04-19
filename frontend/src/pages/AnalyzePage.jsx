@@ -3,7 +3,8 @@ import QueryPanel from '../components/QueryPanel.jsx'
 import MetricsRow from '../components/MetricsRow.jsx'
 import ModelCard  from '../components/ModelCard.jsx'
 import GeoChart   from '../components/GeoChart.jsx'
-import { runAnalysis } from '../services/api.js'
+import RecommendationPanel from '../components/RecommendationPanel.jsx' // NEW: Import Panel
+import { runAnalysis, fetchRecommendations } from '../services/api.js' // NEW: Import API
 import styles from './AnalyzePage.module.css'
 
 export default function AnalyzePage({ analysisData, setData, status, setStatus }) {
@@ -11,11 +12,15 @@ export default function AnalyzePage({ analysisData, setData, status, setStatus }
   const [error,   setError]   = useState(null)
   const [tab,     setTab]     = useState('models')
 
-  // onRun now receives a full payload object from QueryPanel
+  // --- NEW: Recommendation States ---
+  const [recommendations, setRecommendations] = useState([])
+  const [recsLoading, setRecsLoading] = useState(false)
+
   async function handleRun(payload) {
     setLoading(true)
     setError(null)
     setStatus('loading')
+    setRecommendations([]) // Reset recommendations for new scan
     try {
       const result = await runAnalysis(payload)
       setData(result)
@@ -26,6 +31,20 @@ export default function AnalyzePage({ analysisData, setData, status, setStatus }
       setStatus('error')
     } finally {
       setLoading(false)
+    }
+  }
+
+  // --- NEW: Handler for Recommendations ---
+  async function handleGetRecommendations() {
+    if (!analysisData) return
+    setRecsLoading(true)
+    try {
+      const data = await fetchRecommendations(analysisData.brand, analysisData.models)
+      setRecommendations(data)
+    } catch (err) {
+      console.error("Failed to generate tips:", err)
+    } finally {
+      setRecsLoading(false)
     }
   }
 
@@ -57,6 +76,20 @@ export default function AnalyzePage({ analysisData, setData, status, setStatus }
       {analysisData && (
         <>
           <MetricsRow data={analysisData} />
+
+          {/* Corrected Recommendation Trigger Section */}
+          <div className={styles.actionContainer}>
+            {!recommendations.length && !recsLoading ? (
+              <button 
+                className={styles.generateBtn}
+                onClick={handleGetRecommendations}
+              >
+              ✨ GENERATE GEO STRATEGY FIXES
+              </button>
+              ) : (
+              <RecommendationPanel items={recommendations} loading={recsLoading} />
+              )}
+          </div>
 
           <div className={styles.tabs}>
             <button

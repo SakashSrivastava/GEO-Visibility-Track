@@ -1,15 +1,19 @@
-import CompareTable from '../components/CompareTable.jsx'
-import {
-  RadarChart, Radar, PolarGrid, PolarAngleAxis,
+import { useState } from 'react'
+import { 
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, 
   PolarRadiusAxis, ResponsiveContainer, Legend, Tooltip,
+  PieChart, Pie, Cell 
 } from 'recharts'
+import CompareTable from '../components/CompareTable.jsx'
 import { MODELS } from '../utils/constants.js'
+import { runComparison } from '../services/api.js'
 import styles from './ComparePage.module.css'
 
-function RadarSection({ data }) {
-  if (!data) return null
+const COLORS = ['#4f8ef7', '#34d399', '#a78bfa', '#f59e0b', '#f43f5e']
 
-  // Build radar data: each entry is a metric, each model is a key
+function RadarSection({ data }) {
+  if (!data || !data.models) return null
+
   const metrics = [
     { metric: 'Visibility',   key: 'visibility_score' },
     { metric: 'Sentiment',    key: 'sentiment_score' },
@@ -26,7 +30,7 @@ function RadarSection({ data }) {
 
   return (
     <div className={styles.radarCard}>
-      <p className={styles.sectionTitle}>// Radar Comparison</p>
+      <p className={styles.sectionTitle}>// Model Intelligence Radar</p>
       <ResponsiveContainer width="100%" height={300}>
         <RadarChart data={radarData} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
           <PolarGrid stroke="rgba(255,255,255,0.06)" />
@@ -72,10 +76,82 @@ function RadarSection({ data }) {
 }
 
 export default function ComparePage({ analysisData }) {
+  const [competitors, setCompetitors] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [compResults, setCompResults] = useState(null)
+
+  async function handleRunBenchmarking() {
+    if (!analysisData?.brand) return alert("Run a main analysis first.")
+    const compList = competitors.split(',').map(c => c.trim()).filter(c => c)
+    if (compList.length === 0) return alert("Enter at least one competitor.")
+
+    setLoading(true)
+    try {
+      const result = await runComparison({
+        brand: analysisData.brand,
+        competitors: compList,
+        region: analysisData.region || 'global',
+        prompts: analysisData.prompts || []
+      })
+      setCompResults(result)
+    } catch (err) {
+      console.error(err)
+      alert("Comparison failed. Check console for details.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <div>
-      <RadarSection data={analysisData} />
-      <CompareTable data={analysisData} />
+    <div className={styles.compareWrapper}>
+      <div className={styles.topSection}>
+        <RadarSection data={analysisData} />
+        <CompareTable data={analysisData} />
+      </div>
+
+      <div className={styles.benchmarkingPanel}>
+        <p className={styles.sectionTitle}>// Competitor Benchmarking</p>
+        <div className={styles.compInputRow}>
+          <input 
+            className={styles.compInput}
+            placeholder="Enter competitors (e.g. Nike, Adidas)"
+            value={competitors}
+            onChange={(e) => setCompetitors(e.target.value)}
+          />
+          <button className={styles.compBtn} onClick={handleRunBenchmarking} disabled={loading}>
+            {loading ? 'Analyzing...' : 'Run SOV Audit'}
+          </button>
+        </div>
+
+        {compResults && (
+          <div className={styles.sovResults}>
+            <div className={styles.chartBox}>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={compResults.share_of_voice}
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="sov_percentage"
+                    nameKey="brand_name"
+                  >
+                    {compResults.share_of_voice.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className={styles.summaryBox}>
+              <p className={styles.summaryLabel}>STRATEGIC SUMMARY:</p>
+              <p className={styles.summaryText}>{compResults.summary}</p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

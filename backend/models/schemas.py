@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
 
@@ -10,6 +10,19 @@ class AnalysisRequest(BaseModel):
     website: Optional[str] = ""
     region: str = "global"
     prompts: List[str]
+
+class ComparisonRequest(BaseModel):
+    brand: str
+    website: str = ""
+    competitors: list[str] = []  # List of competitor names or URLs
+    region: str = "global"
+    prompts: list[str]
+
+# --- NEW: Share of Voice (SOV) Schema ---
+class ShareOfVoice(BaseModel):
+    brand_name: str
+    sov_percentage: float  # (Brand Mentions / Total Mentions) * 100
+    mentions: int
 
 
 # ── Sub-models ────────────────────────────────────────────────────────────────
@@ -41,6 +54,12 @@ class AnalysisResponse(BaseModel):
     timestamp: str
     models: List[ModelResult]
     geo_visibility: List[GeoVisibility]
+    summary: str
+
+class ComparisonResponse(BaseModel):
+    brand: str
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    share_of_voice: list[ShareOfVoice]
     summary: str
 
 

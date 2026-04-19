@@ -1,15 +1,12 @@
 import json
 from groq import Groq
-
 from config import settings
-from models.schemas import AnalysisResponse
+from models.schemas import AnalysisResponse, ComparisonResponse
 
+# --- PROMPT FOR SINGLE BRAND ANALYSIS ---
 SYSTEM_PROMPT = """You are a GEO (Generative Engine Optimization) visibility analysis engine.
 Analyze brand/keyword visibility in AI-generated search responses.
 Return ONLY valid JSON — no markdown fences, no explanation, no extra text.
-
-For the given brand and region, simulate how different AI models (Claude, GPT-4, Gemini, Llama)
-would represent the brand in their responses to discovery queries.
 
 Return this exact JSON structure:
 {
@@ -43,12 +40,22 @@ Rules:
 - mention_count is 0-10
 - position_rank is 1-5 (1 = mentioned first)
 - Include all 4 models
-- For geo_visibility include: Global 🌐, US 🇺🇸, UK 🇬🇧, India 🇮🇳, Germany 🇩🇪, Japan 🇯🇵
-- Base scores on the brand's actual known presence and reputation — be realistic.
-- If a website URL is provided, use it to infer additional context about the brand's domain, industry, and online presence.
-- The prompts provided by the user define what queries to simulate — analyze visibility specifically for those queries, not just generic AI industry queries.
-- Return ONLY the raw JSON object. No markdown, no backticks, no explanation."""
+- Return ONLY the raw JSON object."""
 
+# --- PROMPT FOR COMPETITOR COMPARISON ---
+COMPARISON_SYSTEM_PROMPT = """You are a Competitive GEO Analysis Engine.
+Analyze brand visibility against competitors in AI search results.
+Return ONLY valid JSON — no markdown, no explanation.
+
+Return this exact JSON structure:
+{
+  "brand": string,
+  "timestamp": string,
+  "share_of_voice": [
+    { "brand_name": string, "sov_percentage": number, "mentions": number }
+  ],
+  "summary": string
+}"""
 
 async def run_ai_analysis(
     brand: str,
@@ -56,24 +63,15 @@ async def run_ai_analysis(
     prompts: list[str],
     website: str = "",
 ) -> AnalysisResponse:
-
     client = Groq(api_key=settings.GROQ_API_KEY)
-
-    # Build context string based on what was provided
+    
     brand_context = f'Brand / Company name: "{brand}"'
     if website:
         brand_context += f'\nWebsite URL: {website}'
-        brand_context += f'\n(Use the website domain and URL to infer the brand\'s industry, products, and market positioning)'
 
     user_message = f"""{brand_context}
 Region context: {region}
-Query prompts to simulate: {'; '.join(prompts)}
-
-Instructions:
-- Analyze how Claude, GPT-4, Gemini, and Llama would mention this brand when responding to the above prompts.
-- Score variation by region should reflect real-world brand recognition differences.
-- The prompts above are user-defined — base the analysis specifically on those queries.
-- Return ONLY the raw JSON object, no markdown fences, no extra text."""
+Query prompts to simulate: {'; '.join(prompts)}"""
 
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
@@ -82,17 +80,43 @@ Instructions:
             {"role": "user",   "content": user_message},
         ],
         temperature=0.3,
-        max_tokens=2000,
     )
 
     raw = response.choices[0].message.content.strip()
-
-    # Strip accidental markdown fences if present
     if raw.startswith("```"):
-        raw = raw.split("```")[1]
-        if raw.startswith("json"):
-            raw = raw[4:]
-    raw = raw.strip()
+        raw = raw.split("```")[1].replace("json", "").strip()
+    
+    return AnalysisResponse(**json.loads(raw))
 
-    data = json.loads(raw)
-    return AnalysisResponse(**data)
+async def run_comparison_analysis(
+    brand: str,
+    competitors: list[str],
+    region: str,
+    prompts: list[str],
+    website: str = "",
+) -> ComparisonResponse:
+    client = Groq(api_key=settings.GROQ_API_KEY)
+    
+    brand_context = f'Primary Brand: "{brand}"'
+    if website:
+        brand_context += f'\nWebsite URL: {website}'
+    
+    user_message = f"""{brand_context}
+Competitors: {', '.join(competitors)}
+Region context: {region}
+Query prompts to simulate: {'; '.join(prompts)}"""
+
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {"role": "system", "content": COMPARISON_SYSTEM_PROMPT},
+            {"role": "user",   "content": user_message},
+        ],
+        temperature=0.3,
+    )
+
+    raw = response.choices[0].message.content.strip()
+    if raw.startswith("```"):
+        raw = raw.split("```")[1].replace("json", "").strip()
+
+    return ComparisonResponse(**json.loads(raw))

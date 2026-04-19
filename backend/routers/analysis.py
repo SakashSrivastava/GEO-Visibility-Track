@@ -1,12 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from services.recommendations_service import generate_geo_recommendations
+import json
 
-from models.schemas import AnalysisRequest, AnalysisResponse
+# Added ComparisonRequest and ComparisonResponse
+from models.schemas import AnalysisRequest, AnalysisResponse, ComparisonRequest, ComparisonResponse
 from models.database import get_db, AnalysisRecord
-from services.ai_service import run_ai_analysis
+# Added run_comparison_analysis
+from services.ai_service import run_ai_analysis, run_comparison_analysis
 
 router = APIRouter()
-
 
 @router.post("/run", response_model=AnalysisResponse)
 async def run_analysis(
@@ -28,7 +31,7 @@ async def run_analysis(
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"AI analysis failed: {str(e)}")
 
-    # Persist to DB
+    # Persist single-brand audits to DB for history
     avg_score = sum(m.visibility_score for m in result.models) / len(result.models)
 
     record = AnalysisRecord(
@@ -42,6 +45,37 @@ async def run_analysis(
     await db.commit()
 
     return result
+
+# --- NEW: Comparison Endpoint ---
+@router.post("/compare", response_model=ComparisonResponse)
+async def run_comparison(
+    req: ComparisonRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Endpoint to benchmark a brand against competitors.
+    """
+    if not req.brand.strip():
+        raise HTTPException(status_code=400, detail="Primary brand is required.")
+    if not req.competitors:
+        raise HTTPException(status_code=400, detail="At least one competitor is required.")
+
+    try:
+        # Call the new comparison service
+        result = await run_comparison_analysis(
+            brand=req.brand,
+            competitors=req.competitors,
+            region=req.region,
+            prompts=req.prompts,
+            website=req.website or "",
+        )
+        
+        # Note: In a production version, you would also save this to a 
+        # ComparisonRecord table in the database for history tracking.
+        
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Comparison analysis failed: {str(e)}")
 
 
 @router.get("/models")
@@ -70,3 +104,27 @@ async def list_regions():
             {"value": "au",     "label": "Australia",      "flag": "🇦🇺"},
         ]
     }
+
+
+@router.post("/recommendations")
+async def get_recommendations(payload: dict):
+    """
+    Endpoint to trigger the AI recommendation engine.
+    Expects: { "brand": "...", "analysis_data": [...] }
+    """
+    brand = payload.get("brand")
+    analysis_data = payload.get("analysis_data")
+
+    if not brand or not analysis_data:
+        return {"error": "Missing brand or analysis data"}, 400
+
+    # Call the service we created in Step 1
+    raw_recommendations = await generate_geo_recommendations(brand, analysis_data)
+    
+    try:
+        # We try to parse it to ensure it's valid JSON before sending to frontend
+        clean_data = json.loads(raw_recommendations)
+        return {"recommendations": clean_data}
+    except:
+        # If the AI failed to give clean JSON, we return the raw string
+        return {"recommendations": raw_recommendations}
