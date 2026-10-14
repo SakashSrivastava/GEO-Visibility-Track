@@ -1,4 +1,5 @@
 import styles from './Header.module.css'
+import AuthControl from './AuthControl.jsx'
 
 const STATUS_CONFIG = {
   idle:    { cls: styles.idle,    label: 'READY'   },
@@ -7,7 +8,7 @@ const STATUS_CONFIG = {
   error:   { cls: styles.error,   label: 'ERROR'   },
 }
 
-export default function Header({ view, setView, status }) {
+export default function Header({ view, setView, status, user, onAuth }) {
   const { cls, label } = STATUS_CONFIG[status] || STATUS_CONFIG.idle
 
   return (
@@ -29,9 +30,12 @@ export default function Header({ view, setView, status }) {
         ))}
       </nav>
 
-      <div className={styles.statusBadge}>
-        <span className={`${styles.dot} ${cls}`} />
-        <span className={styles.statusText}>{label}</span>
+      <div className={styles.right}>
+        <div className={styles.statusBadge}>
+          <span className={`${styles.dot} ${cls}`} />
+          <span className={styles.statusText}>{label}</span>
+        </div>
+        <AuthControl user={user} onAuth={onAuth} />
       </div>
     </header>
   )

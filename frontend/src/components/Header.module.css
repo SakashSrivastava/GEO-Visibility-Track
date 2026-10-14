@@ -11,6 +11,12 @@
   z-index: 100;
 }
 
+.right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .logo {
   display: flex;
   align-items: center;

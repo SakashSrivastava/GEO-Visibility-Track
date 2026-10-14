@@ -67,6 +67,7 @@ async def run_monitor_job(monitor_id: int):
         new_avg = round(statistics.mean(x.visibility_score for x in ok), 1) if ok else 0.0
 
         db.add(AnalysisRecord(
+            user_id=m.user_id,
             brand=m.brand, region=m.region, prompts=m.prompts,
             results=result.model_dump(), avg_score=new_avg,
             monitor_id=m.id, source="scheduled",
@@ -77,14 +78,14 @@ async def run_monitor_job(monitor_id: int):
             delta = round(new_avg - old, 1)
             if delta <= -m.drop_threshold:
                 db.add(Alert(
-                    monitor_id=m.id, brand=m.brand, type="visibility_drop",
+                    user_id=m.user_id, monitor_id=m.id, brand=m.brand, type="visibility_drop",
                     severity="high" if delta <= -2 * m.drop_threshold else "medium",
                     message=f"{m.brand} visibility dropped {abs(delta)} points ({old} -> {new_avg}).",
                     old_value=old, new_value=new_avg, delta=delta,
                 ))
             elif delta >= m.drop_threshold:
                 db.add(Alert(
-                    monitor_id=m.id, brand=m.brand, type="visibility_rise", severity="info",
+                    user_id=m.user_id, monitor_id=m.id, brand=m.brand, type="visibility_rise", severity="info",
                     message=f"{m.brand} visibility rose {delta} points ({old} -> {new_avg}).",
                     old_value=old, new_value=new_avg, delta=delta,
                 ))

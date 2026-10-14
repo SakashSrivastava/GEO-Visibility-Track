@@ -4,13 +4,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.schemas import AnalysisRequest, AnalysisResponse
 from models.database import get_db, AnalysisRecord, RawResponse
 from services.analysis_service import run_real_analysis
+from services.security import get_optional_user_id
 from providers import active_models
 
 router = APIRouter()
 
 
 @router.post("/run", response_model=AnalysisResponse)
-async def run_analysis(req: AnalysisRequest, db: AsyncSession = Depends(get_db)):
+async def run_analysis(
+    req: AnalysisRequest,
+    db: AsyncSession = Depends(get_db),
+    user_id: int | None = Depends(get_optional_user_id),
+):
     """Run a real multi-model GEO visibility analysis and persist it."""
     if not req.brand.strip():
         raise HTTPException(status_code=400, detail="Brand name is required.")
@@ -28,6 +33,7 @@ async def run_analysis(req: AnalysisRequest, db: AsyncSession = Depends(get_db))
     avg_score = (sum(m.visibility_score for m in ok_models) / len(ok_models)) if ok_models else 0.0
 
     record = AnalysisRecord(
+        user_id=user_id,
         brand=req.brand, region=req.region, prompts=req.prompts,
         results=result.model_dump(), avg_score=round(avg_score, 1),
     )

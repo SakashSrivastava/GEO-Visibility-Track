@@ -8,6 +8,39 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
+// Attach the auth token (if logged in) to every request.
+api.interceptors.request.use(cfg => {
+  try {
+    const t = localStorage.getItem('geo_token')
+    if (t) cfg.headers.Authorization = `Bearer ${t}`
+  } catch { /* storage may be unavailable */ }
+  return cfg
+})
+
+// ── Auth (Feature 5) ────────────────────────────────────────────────────────
+
+export async function register(email, password) {
+  const { data } = await api.post('/api/auth/register', { email, password })
+  return data
+}
+export async function login(email, password) {
+  const { data } = await api.post('/api/auth/login', { email, password })
+  return data
+}
+export async function getMe() {
+  const { data } = await api.get('/api/auth/me')
+  return data
+}
+export async function downloadReport(id, brand) {
+  const res = await api.get(`/api/history/${id}/report.pdf`, { responseType: 'blob' })
+  const url = URL.createObjectURL(res.data)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `geo-report-${brand || id}.pdf`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 // ── Analysis ──────────────────────────────────────────────────────────────
 
 /**

@@ -158,6 +158,16 @@ raises a `visibility_drop` alert (high severity if it exceeds twice the
 threshold), a comparable rise raises an informational `visibility_rise`, and the
 baseline is updated. Monitors are reloaded and rescheduled on startup.
 
+## Accounts & export (Feature 5)
+
+Optional JWT auth (`services/security.py`, `routers/auth.py`): passwords are
+hashed with bcrypt, a signed token carries the user id, and a dependency resolves
+the current user. Auth is **optional** — requests without a token use the
+anonymous bucket (`user_id` NULL), so the app stays usable without logging in,
+while analyses, monitors and alerts are scoped by `user_id` for signed-in users.
+Any stored analysis exports to a branded **PDF** (`services/report.py`,
+reportlab) or CSV.
+
 ## Reproducibility / cost knobs (`config.py`)
 
 `RUNS_PER_PROMPT` (default 3), `GEO_RUNS_PER_PROMPT` (1), `QUERY_TEMPERATURE`

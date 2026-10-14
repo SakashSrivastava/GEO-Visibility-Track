@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-from routers import analysis, history, audit, monitor
+from routers import analysis, history, audit, monitor, auth
 from models.database import init_db
 from services.scheduler import start_scheduler, shutdown_scheduler
 from config import settings
@@ -35,6 +35,7 @@ app.include_router(analysis.router, prefix="/api/analysis", tags=["Analysis"])
 app.include_router(history.router,  prefix="/api/history",  tags=["History"])
 app.include_router(audit.router,    prefix="/api/audit",    tags=["Audit"])
 app.include_router(monitor.router,  prefix="/api/monitor",  tags=["Monitor"])
+app.include_router(auth.router,     prefix="/api/auth",     tags=["Auth"])
 
 
 @app.get("/")

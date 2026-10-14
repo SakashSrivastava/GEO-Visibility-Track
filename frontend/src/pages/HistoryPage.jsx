@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { fetchHistory, fetchHistoryItem, deleteHistoryItem, clearHistory } from '../services/api.js'
+import { fetchHistory, fetchHistoryItem, deleteHistoryItem, clearHistory, downloadReport } from '../services/api.js'
 import { formatDate } from '../utils/helpers.js'
 import styles from './HistoryPage.module.css'
 
@@ -121,6 +121,10 @@ export default function HistoryPage({ onLoad }) {
                   <div className={styles.actions}>
                     <button className={styles.viewBtn} onClick={() => handleView(r.id)}>
                       View ↗
+                    </button>
+                    <button className={styles.viewBtn}
+                            onClick={() => downloadReport(r.id, r.brand).catch(e => alert('PDF failed: ' + e.message))}>
+                      PDF ↓
                     </button>
                     <button
                       className={styles.deleteBtn}

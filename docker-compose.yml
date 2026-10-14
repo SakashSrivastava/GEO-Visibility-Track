@@ -1,0 +1,22 @@
+# Local production-like run. Set real keys in the environment before `docker compose up`.
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      JWT_SECRET: ${JWT_SECRET:-change-me}
+      CORS_ORIGINS: '["http://localhost:8080"]'
+      DATABASE_URL: sqlite+aiosqlite:///./geo_tracker.db
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:8000
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend

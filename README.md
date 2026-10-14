@@ -32,6 +32,8 @@ the sources models rely on, audits a site, and tests whether fixes actually help
 - **Scheduled monitoring + drift alerts** — watch a brand on a schedule
   (APScheduler); every run is stored as a time series, a trend chart is plotted,
   and an alert fires when average visibility drops beyond a threshold.
+- **Accounts & report export** — optional JWT login with per-user private
+  history and monitors, plus one-click **PDF** and CSV export of any analysis.
 
 ## Architecture
 
@@ -39,8 +41,9 @@ the sources models rely on, audits a site, and tests whether fixes actually help
 frontend/   React + Vite dashboard (Analyze · Compare · Optimize · Monitor · History)
 backend/    FastAPI + SQLAlchemy (SQLite)
   providers/   pluggable real-model adapters (Groq, Gemini; OpenAI/Anthropic ready)
-  services/    query engine, metrics, citations, auditor, recommendations, experiment, scheduler
-  routers/     /api/analysis, /api/history, /api/audit, /api/monitor
+  services/    query engine, metrics, citations, auditor, recommendations,
+               experiment, scheduler, security (auth), report (PDF)
+  routers/     /api/analysis, /api/history, /api/audit, /api/monitor, /api/auth
 ```
 
 Models are resolved at runtime from whichever provider keys are configured, so
@@ -72,10 +75,18 @@ npm install
 npm run dev                  # http://localhost:5173
 ```
 
+## Deployment
+
+Both tiers are containerised (`backend/Dockerfile`, `frontend/Dockerfile`), with
+a `docker-compose.yml` for a local production-like run. See
+[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for Azure Container Apps, split hosting
+(Vercel + Railway), and the production checklist.
+
 ## Tech stack
 
 React · Vite · Recharts · FastAPI · Pydantic · SQLAlchemy · SQLite · httpx ·
-vaderSentiment · BeautifulSoup · APScheduler
+vaderSentiment · BeautifulSoup · APScheduler · JWT (python-jose) · bcrypt ·
+reportlab · Docker
 
 ## Methodology
 

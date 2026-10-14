@@ -13,6 +13,10 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite+aiosqlite:///./geo_tracker.db"
     CORS_ORIGINS: List[str] = ["http://localhost:5173"]
 
+    # ── Auth (Feature 5) ──────────────────────────────────────────────────────
+    JWT_SECRET: str = "dev-secret-change-in-production"
+    JWT_EXPIRE_MINUTES: int = 10080     # 7 days
+
     # ── Measurement settings ─────────────────────────────────────────────────
     # Each (model x prompt) is queried RUNS_PER_PROMPT times at a non-zero
     # temperature; metrics are aggregated across runs so scores carry variance.

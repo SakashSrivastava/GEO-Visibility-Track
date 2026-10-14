@@ -13,10 +13,21 @@ class Base(DeclarativeBase):
     pass
 
 
+class User(Base):
+    """A registered user (Feature 5). Data is scoped by user_id; anonymous = NULL."""
+    __tablename__ = "users"
+
+    id              = Column(Integer, primary_key=True, index=True)
+    email           = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+    created_at      = Column(DateTime, default=datetime.utcnow)
+
+
 class AnalysisRecord(Base):
     __tablename__ = "analyses"
 
     id         = Column(Integer, primary_key=True, index=True)
+    user_id    = Column(Integer, index=True, nullable=True)
     brand      = Column(String, index=True)
     region     = Column(String)
     prompts    = Column(JSON)          # list of prompt strings used
@@ -49,6 +60,7 @@ class Monitor(Base):
     __tablename__ = "monitors"
 
     id             = Column(Integer, primary_key=True, index=True)
+    user_id        = Column(Integer, index=True, nullable=True)
     brand          = Column(String, index=True)
     region         = Column(String, default="global")
     prompts        = Column(JSON)
@@ -66,6 +78,7 @@ class Alert(Base):
     __tablename__ = "alerts"
 
     id           = Column(Integer, primary_key=True, index=True)
+    user_id      = Column(Integer, index=True, nullable=True)
     monitor_id   = Column(Integer, index=True)
     brand        = Column(String)
     type         = Column(String)        # visibility_drop | visibility_rise | appearance_drop
