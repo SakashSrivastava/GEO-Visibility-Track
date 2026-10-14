@@ -29,17 +29,18 @@ the sources models rely on, audits a site, and tests whether fixes actually help
 - **Measurable-impact experiment** — a paired, significance-tested A/B in a
   competitive pool that measures whether the recommended content *actually*
   raises the brand's visibility, reported with a 95% confidence interval.
-- **Scheduled monitoring + drift alerts** *(in progress)* — re-run analyses on a
-  schedule, track trends over time, and alert when visibility drifts.
+- **Scheduled monitoring + drift alerts** — watch a brand on a schedule
+  (APScheduler); every run is stored as a time series, a trend chart is plotted,
+  and an alert fires when average visibility drops beyond a threshold.
 
 ## Architecture
 
 ```
-frontend/   React + Vite dashboard (Analyze · Compare · Optimize · History)
+frontend/   React + Vite dashboard (Analyze · Compare · Optimize · Monitor · History)
 backend/    FastAPI + SQLAlchemy (SQLite)
   providers/   pluggable real-model adapters (Groq, Gemini; OpenAI/Anthropic ready)
-  services/    query engine, metrics, citations, auditor, recommendations, experiment
-  routers/     /api/analysis, /api/history, /api/audit
+  services/    query engine, metrics, citations, auditor, recommendations, experiment, scheduler
+  routers/     /api/analysis, /api/history, /api/audit, /api/monitor
 ```
 
 Models are resolved at runtime from whichever provider keys are configured, so

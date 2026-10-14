@@ -134,6 +134,65 @@ class AuditResponse(BaseModel):
     experiment: Optional[ExperimentResult] = None
 
 
+# ── Feature 4: monitoring / alerts / trends ──────────────────────────────────
+
+class MonitorCreate(BaseModel):
+    brand: str
+    region: str = "global"
+    prompts: List[str]
+    competitors: List[str] = []
+    interval_minutes: int = 1440
+    drop_threshold: float = 10.0
+    run_now: bool = True
+
+
+class MonitorUpdate(BaseModel):
+    enabled: Optional[bool] = None
+    interval_minutes: Optional[int] = None
+    drop_threshold: Optional[float] = None
+
+
+class MonitorOut(BaseModel):
+    id: int
+    brand: str
+    region: str
+    prompts: List[str]
+    competitors: List[str] = []
+    interval_minutes: int
+    drop_threshold: float
+    enabled: bool
+    baseline_score: Optional[float] = None
+    last_run: Optional[datetime] = None
+    next_run: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class AlertOut(BaseModel):
+    id: int
+    monitor_id: int
+    brand: str
+    type: str
+    severity: str
+    message: str
+    old_value: Optional[float] = None
+    new_value: Optional[float] = None
+    delta: Optional[float] = None
+    acknowledged: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class TrendPoint(BaseModel):
+    created_at: datetime
+    avg_score: float
+    source: str
+
+
 class HistoryItem(BaseModel):
     id: int
     brand: str

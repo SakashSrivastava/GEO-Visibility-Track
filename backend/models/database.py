@@ -44,6 +44,40 @@ class RawResponse(Base):
     created_at  = Column(DateTime, default=datetime.utcnow)
 
 
+class Monitor(Base):
+    """A watched brand: re-run on a schedule and alert on drift (Feature 4)."""
+    __tablename__ = "monitors"
+
+    id             = Column(Integer, primary_key=True, index=True)
+    brand          = Column(String, index=True)
+    region         = Column(String, default="global")
+    prompts        = Column(JSON)
+    competitors    = Column(JSON, default=list)
+    interval_minutes = Column(Integer, default=1440)   # default daily
+    drop_threshold = Column(Float, default=10.0)        # alert if avg visibility falls > this
+    enabled        = Column(Boolean, default=True)
+    baseline_score = Column(Float, nullable=True)       # last observed avg visibility
+    last_run       = Column(DateTime, nullable=True)
+    created_at     = Column(DateTime, default=datetime.utcnow)
+
+
+class Alert(Base):
+    """A drift event raised by a scheduled run (Feature 4)."""
+    __tablename__ = "alerts"
+
+    id           = Column(Integer, primary_key=True, index=True)
+    monitor_id   = Column(Integer, index=True)
+    brand        = Column(String)
+    type         = Column(String)        # visibility_drop | visibility_rise | appearance_drop
+    severity     = Column(String)        # high | medium | info
+    message      = Column(Text)
+    old_value    = Column(Float, nullable=True)
+    new_value    = Column(Float, nullable=True)
+    delta        = Column(Float, nullable=True)
+    acknowledged = Column(Boolean, default=False)
+    created_at   = Column(DateTime, default=datetime.utcnow)
+
+
 def _add_missing_columns(conn):
     """Lightweight SQLite migration: add any model columns missing from a table."""
     from sqlalchemy import inspect, text

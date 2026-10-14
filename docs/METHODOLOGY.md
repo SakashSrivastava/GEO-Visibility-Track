@@ -146,6 +146,18 @@ A lightweight single-representative-model sweep across regions
 phrasing and reports mean visibility per region. Kept cheap to respect free-tier
 limits; raise the run count for a smoother (less noisy) signal.
 
+## Scheduled monitoring & drift alerts (Feature 4, `services/scheduler.py`)
+
+A `Monitor` records a watched brand (region, prompts, competitors, interval,
+drop threshold). An `AsyncIOScheduler` (APScheduler) re-runs each enabled monitor
+on its interval; every run is persisted as an `AnalysisRecord` with
+`source="scheduled"` and the `monitor_id`, so a brand's history forms a time
+series (plotted on the Monitor page). After each run the new average visibility is
+compared to the monitor's stored baseline: a fall of more than `drop_threshold`
+raises a `visibility_drop` alert (high severity if it exceeds twice the
+threshold), a comparable rise raises an informational `visibility_rise`, and the
+baseline is updated. Monitors are reloaded and rescheduled on startup.
+
 ## Reproducibility / cost knobs (`config.py`)
 
 `RUNS_PER_PROMPT` (default 3), `GEO_RUNS_PER_PROMPT` (1), `QUERY_TEMPERATURE`

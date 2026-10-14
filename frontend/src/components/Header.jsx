@@ -18,7 +18,7 @@ export default function Header({ view, setView, status }) {
       </div>
 
       <nav className={styles.nav}>
-        {['analyze', 'compare', 'optimize', 'history'].map(v => (
+        {['analyze', 'compare', 'optimize', 'monitor', 'history'].map(v => (
           <button
             key={v}
             className={`${styles.navBtn} ${view === v ? styles.active : ''}`}

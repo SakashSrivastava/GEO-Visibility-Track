@@ -25,6 +25,41 @@ export async function runAudit(payload) {
   return data
 }
 
+// ── Monitoring (Feature 4) ──────────────────────────────────────────────────
+
+export async function createMonitor(payload) {
+  const { data } = await api.post('/api/monitor/', payload)
+  return data
+}
+export async function fetchMonitors() {
+  const { data } = await api.get('/api/monitor/')
+  return data
+}
+export async function updateMonitor(id, payload) {
+  const { data } = await api.patch(`/api/monitor/${id}`, payload)
+  return data
+}
+export async function runMonitorNow(id) {
+  const { data } = await api.post(`/api/monitor/${id}/run`)
+  return data
+}
+export async function deleteMonitor(id) {
+  const { data } = await api.delete(`/api/monitor/${id}`)
+  return data
+}
+export async function fetchTrend(id) {
+  const { data } = await api.get(`/api/monitor/${id}/trend`)
+  return data
+}
+export async function fetchAlerts(unacknowledged = false) {
+  const { data } = await api.get('/api/monitor/alerts/all', { params: { unacknowledged } })
+  return data
+}
+export async function ackAlert(id) {
+  const { data } = await api.post(`/api/monitor/alerts/${id}/ack`)
+  return data
+}
+
 export async function fetchModels() {
   const { data } = await api.get('/api/analysis/models')
   return data.models
