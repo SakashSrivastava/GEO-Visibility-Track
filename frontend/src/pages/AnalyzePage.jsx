@@ -3,8 +3,9 @@ import QueryPanel from '../components/QueryPanel.jsx'
 import MetricsRow from '../components/MetricsRow.jsx'
 import ModelCard  from '../components/ModelCard.jsx'
 import GeoChart   from '../components/GeoChart.jsx'
-import RecommendationPanel from '../components/RecommendationPanel.jsx' // NEW: Import Panel
-import { runAnalysis, fetchRecommendations } from '../services/api.js' // NEW: Import API
+import ShareOfVoice from '../components/ShareOfVoice.jsx'
+import Citations from '../components/Citations.jsx'
+import { runAnalysis } from '../services/api.js'
 import styles from './AnalyzePage.module.css'
 
 export default function AnalyzePage({ analysisData, setData, status, setStatus }) {
@@ -12,17 +13,12 @@ export default function AnalyzePage({ analysisData, setData, status, setStatus }
   const [error,   setError]   = useState(null)
   const [tab,     setTab]     = useState('models')
 
-  // --- NEW: Recommendation States ---
-  const [recommendations, setRecommendations] = useState([])
-  const [recsLoading, setRecsLoading] = useState(false)
-
-  async function handleRun(payload) {
+  async function handleRun(brand, region, prompts, competitors = []) {
     setLoading(true)
     setError(null)
     setStatus('loading')
-    setRecommendations([]) // Reset recommendations for new scan
     try {
-      const result = await runAnalysis(payload)
+      const result = await runAnalysis({ brand, region, prompts, competitors })
       setData(result)
       setStatus('live')
     } catch (err) {
@@ -31,20 +27,6 @@ export default function AnalyzePage({ analysisData, setData, status, setStatus }
       setStatus('error')
     } finally {
       setLoading(false)
-    }
-  }
-
-  // --- NEW: Handler for Recommendations ---
-  async function handleGetRecommendations() {
-    if (!analysisData) return
-    setRecsLoading(true)
-    try {
-      const data = await fetchRecommendations(analysisData.brand, analysisData.models)
-      setRecommendations(data)
-    } catch (err) {
-      console.error("Failed to generate tips:", err)
-    } finally {
-      setRecsLoading(false)
     }
   }
 
@@ -67,8 +49,8 @@ export default function AnalyzePage({ analysisData, setData, status, setStatus }
           <div className={styles.emptyIcon}>◎</div>
           <div className={styles.emptyTitle}>NO DATA YET</div>
           <p className={styles.emptySub}>
-            Enter a brand name or website URL, add your prompts,<br />
-            and click Run Analysis.
+            Enter a brand name and run an analysis<br />
+            to see how AI models represent your brand.
           </p>
         </div>
       )}
@@ -77,20 +59,7 @@ export default function AnalyzePage({ analysisData, setData, status, setStatus }
         <>
           <MetricsRow data={analysisData} />
 
-          {/* Corrected Recommendation Trigger Section */}
-          <div className={styles.actionContainer}>
-            {!recommendations.length && !recsLoading ? (
-              <button 
-                className={styles.generateBtn}
-                onClick={handleGetRecommendations}
-              >
-              ✨ GENERATE GEO STRATEGY FIXES
-              </button>
-              ) : (
-              <RecommendationPanel items={recommendations} loading={recsLoading} />
-              )}
-          </div>
-
+          {/* Tabs */}
           <div className={styles.tabs}>
             <button
               className={`${styles.tab} ${tab === 'models' ? styles.tabActive : ''}`}
@@ -104,6 +73,20 @@ export default function AnalyzePage({ analysisData, setData, status, setStatus }
             >
               Geo Distribution
             </button>
+            {analysisData.share_of_voice?.length > 0 && (
+              <button
+                className={`${styles.tab} ${tab === 'sov' ? styles.tabActive : ''}`}
+                onClick={() => setTab('sov')}
+              >
+                Share of Voice
+              </button>
+            )}
+            <button
+              className={`${styles.tab} ${tab === 'sources' ? styles.tabActive : ''}`}
+              onClick={() => setTab('sources')}
+            >
+              Sources
+            </button>
           </div>
 
           {tab === 'models' && (
@@ -116,6 +99,14 @@ export default function AnalyzePage({ analysisData, setData, status, setStatus }
 
           {tab === 'geo' && (
             <GeoChart geoData={analysisData.geo_visibility} />
+          )}
+
+          {tab === 'sov' && (
+            <ShareOfVoice data={analysisData.share_of_voice} brand={analysisData.brand} />
+          )}
+
+          {tab === 'sources' && (
+            <Citations data={analysisData.citations} />
           )}
         </>
       )}

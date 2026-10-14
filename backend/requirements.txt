@@ -8,3 +8,6 @@ pydantic-settings==2.3.0
 sqlalchemy==2.0.30
 aiosqlite==0.20.0
 python-jose==3.3.0
+vaderSentiment==3.3.2
+beautifulsoup4==4.12.3
+apscheduler==3.10.4

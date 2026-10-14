@@ -1,16 +1,23 @@
 # Node
 node_modules/
+frontend/dist/
+dist/
 
 # Python
 __pycache__/
 *.pyc
 venv/
+.venv/
 
 # Environment files
 .env
+
+# Databases (auto-created on startup)
+*.db
 
 # Logs
 *.log
 
 # OS files
 .DS_Store
+Thumbs.db

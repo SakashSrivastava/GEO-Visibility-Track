@@ -4,18 +4,22 @@ import styles from './MetricsRow.module.css'
 export default function MetricsRow({ data }) {
   if (!data) return null
 
-  const avgVisibility = average(data.models.map(m => m.visibility_score))
-  const totalMentions = data.models.reduce((s, m) => s + m.mention_count, 0)
-  const avgSentiment  = average(data.models.map(m => m.sentiment_score))
-  const sentLabel     = avgSentiment > 60 ? 'Positive' : avgSentiment < 40 ? 'Negative' : 'Neutral'
-  const sentColor     = avgSentiment > 60 ? 'var(--green)' : avgSentiment < 40 ? 'var(--red)' : 'var(--amber)'
+  const ok = data.models.filter(m => m.ok !== false)
+  const base = ok.length ? ok : data.models
+
+  const avgVisibility = average(base.map(m => m.visibility_score))
+  const avgAppearance = Math.round(average(base.map(m => (m.appearance_rate ?? 0) * 100)))
+  const avgSentiment  = average(base.map(m => m.sentiment_score))
+  const sentLabel     = avgSentiment > 55 ? 'Positive' : avgSentiment < 45 ? 'Negative' : 'Neutral'
+  const sentColor     = avgSentiment > 55 ? 'var(--green)' : avgSentiment < 45 ? 'var(--red)' : 'var(--amber)'
 
   const cards = [
     { label: 'Avg Visibility Score', value: avgVisibility, color: 'var(--accent)' },
-    { label: 'Total Mentions',        value: totalMentions, color: 'var(--green)' },
+    { label: 'Avg Appearance Rate',  value: `${avgAppearance}%`, color: 'var(--green)',
+      sub: `across ${data.run_count || '?'} runs/prompt` },
     { label: 'Avg Sentiment',         value: sentLabel,     color: sentColor },
-    { label: 'Models Tracked',        value: data.models.length, color: 'var(--amber)',
-      sub: data.models.map(m => m.name).join(' · ') },
+    { label: 'Models Tracked',        value: `${ok.length}/${data.models.length}`, color: 'var(--amber)',
+      sub: base.map(m => m.name).join(' · ') },
   ]
 
   return (

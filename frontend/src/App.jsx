@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Header from './components/Header.jsx'
 import AnalyzePage from './pages/AnalyzePage.jsx'
 import ComparePage from './pages/ComparePage.jsx'
+import OptimizePage from './pages/OptimizePage.jsx'
 import HistoryPage from './pages/HistoryPage.jsx'
 
 export default function App() {
@@ -28,6 +29,7 @@ export default function App() {
           />
         )}
         {view === 'compare'  && <ComparePage  analysisData={analysisData} />}
+        {view === 'optimize' && <OptimizePage analysisData={analysisData} />}
         {view === 'history'  && <HistoryPage  onLoad={handleResult} />}
       </main>
     </div>

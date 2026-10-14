@@ -31,8 +31,27 @@ function ScoreBar({ label, value, color, displayValue }) {
 }
 
 export default function ModelCard({ model }) {
-  const meta         = MODELS.find(m => m.id === model.id) || { color: '#8b95b0' }
+  const meta         = MODELS.find(m => m.id === model.id) || { color: '#8b95b0', provider: model.provider }
   const sentColor    = SENTIMENT_COLOR[model.sentiment_label] || 'var(--amber)'
+  const appearPct    = Math.round((model.appearance_rate ?? 0) * 100)
+
+  if (model.ok === false) {
+    return (
+      <div className={`${styles.card} ${styles.unavailable}`}>
+        <div className={styles.header}>
+          <div className={styles.modelName}>
+            <span className={styles.dot} style={{ background: 'var(--text3)' }} />
+            {model.name}
+            <span className={styles.provider}>{meta.provider}</span>
+          </div>
+          <span className={styles.rank}>—</span>
+        </div>
+        <div className={styles.body}>
+          <div className={styles.errorMsg}>No usable response<br />{model.error}</div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className={styles.card}>
@@ -42,15 +61,22 @@ export default function ModelCard({ model }) {
           {model.name}
           <span className={styles.provider}>{meta.provider}</span>
         </div>
-        <span className={styles.rank}>#{model.position_rank}</span>
+        <span className={styles.rank}>{model.position_rank ? `#${model.position_rank}` : '—'}</span>
       </div>
 
       <div className={styles.body}>
+        <div className={styles.appearRow}>
+          <span className={styles.appearPct} style={{ color: meta.color }}>{appearPct}%</span>
+          <span className={styles.appearLbl}>
+            appeared in {appearPct}% of {model.run_count || 0} real responses
+          </span>
+        </div>
+
         <ScoreBar
           label="Visibility"
           value={model.visibility_score}
           color={meta.color}
-          displayValue={model.visibility_score}
+          displayValue={model.visibility_std ? `${model.visibility_score} ±${model.visibility_std}` : model.visibility_score}
         />
         <ScoreBar
           label="Sentiment"

@@ -1,8 +1,10 @@
+// Real models queried directly. The dashboard also renders whatever the API
+// returns in result.models, so this is just the default/legend set.
 export const MODELS = [
-  { id: 'claude', name: 'Claude',  provider: 'Anthropic', color: '#4f8ef7' },
-  { id: 'gpt',    name: 'GPT-4',   provider: 'OpenAI',    color: '#34d399' },
-  { id: 'gemini', name: 'Gemini',  provider: 'Google',    color: '#a78bfa' },
-  { id: 'llama',  name: 'Llama',   provider: 'Meta',      color: '#f59e0b' },
+  { id: 'gemini',      name: 'Gemini 2.0 Flash', provider: 'Google',  color: '#a78bfa' },
+  { id: 'gpt-oss-120b',name: 'GPT-OSS 120B',     provider: 'OpenAI',  color: '#34d399' },
+  { id: 'qwen3',       name: 'Qwen3 27B',        provider: 'Alibaba', color: '#f59e0b' },
+  { id: 'gpt-oss-20b', name: 'GPT-OSS 20B',      provider: 'OpenAI',  color: '#4f8ef7' },
 ]
 
 export const REGIONS = [

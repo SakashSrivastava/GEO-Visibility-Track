@@ -1,12 +1,15 @@
 import json
 from groq import Groq
-from config import settings
-from models.schemas import AnalysisResponse, ComparisonResponse
 
-# --- PROMPT FOR SINGLE BRAND ANALYSIS ---
+from config import settings
+from models.schemas import AnalysisResponse
+
 SYSTEM_PROMPT = """You are a GEO (Generative Engine Optimization) visibility analysis engine.
 Analyze brand/keyword visibility in AI-generated search responses.
 Return ONLY valid JSON — no markdown fences, no explanation, no extra text.
+
+For the given brand and region, simulate how different AI models (Claude, GPT-4, Gemini, Llama)
+would represent the brand in their responses to discovery queries.
 
 Return this exact JSON structure:
 {
@@ -40,38 +43,21 @@ Rules:
 - mention_count is 0-10
 - position_rank is 1-5 (1 = mentioned first)
 - Include all 4 models
-- Return ONLY the raw JSON object."""
+- For geo_visibility include: Global 🌐, US 🇺🇸, UK 🇬🇧, India 🇮🇳, Germany 🇩🇪, Japan 🇯🇵
+- Base scores on the brand's actual known presence and reputation — be realistic.
+- Return ONLY the raw JSON object. No markdown, no backticks, no explanation."""
 
-# --- PROMPT FOR COMPETITOR COMPARISON ---
-COMPARISON_SYSTEM_PROMPT = """You are a Competitive GEO Analysis Engine.
-Analyze brand visibility against competitors in AI search results.
-Return ONLY valid JSON — no markdown, no explanation.
 
-Return this exact JSON structure:
-{
-  "brand": string,
-  "timestamp": string,
-  "share_of_voice": [
-    { "brand_name": string, "sov_percentage": number, "mentions": number }
-  ],
-  "summary": string
-}"""
-
-async def run_ai_analysis(
-    brand: str,
-    region: str,
-    prompts: list[str],
-    website: str = "",
-) -> AnalysisResponse:
+async def run_ai_analysis(brand: str, region: str, prompts: list[str]) -> AnalysisResponse:
     client = Groq(api_key=settings.GROQ_API_KEY)
-    
-    brand_context = f'Brand / Company name: "{brand}"'
-    if website:
-        brand_context += f'\nWebsite URL: {website}'
 
-    user_message = f"""{brand_context}
+    user_message = f"""Brand to analyze: "{brand}"
 Region context: {region}
-Query prompts to simulate: {'; '.join(prompts)}"""
+Query prompts being tested: {'; '.join(prompts)}
+
+Analyze visibility across Claude, GPT-4, Gemini, and Llama.
+Score variation by region should reflect real-world brand recognition differences.
+Return ONLY the raw JSON object, no markdown fences, no extra text."""
 
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
@@ -80,43 +66,17 @@ Query prompts to simulate: {'; '.join(prompts)}"""
             {"role": "user",   "content": user_message},
         ],
         temperature=0.3,
+        max_tokens=2000,
     )
 
     raw = response.choices[0].message.content.strip()
+
+    # Strip accidental markdown fences if present
     if raw.startswith("```"):
-        raw = raw.split("```")[1].replace("json", "").strip()
-    
-    return AnalysisResponse(**json.loads(raw))
+        raw = raw.split("```")[1]
+        if raw.startswith("json"):
+            raw = raw[4:]
+    raw = raw.strip()
 
-async def run_comparison_analysis(
-    brand: str,
-    competitors: list[str],
-    region: str,
-    prompts: list[str],
-    website: str = "",
-) -> ComparisonResponse:
-    client = Groq(api_key=settings.GROQ_API_KEY)
-    
-    brand_context = f'Primary Brand: "{brand}"'
-    if website:
-        brand_context += f'\nWebsite URL: {website}'
-    
-    user_message = f"""{brand_context}
-Competitors: {', '.join(competitors)}
-Region context: {region}
-Query prompts to simulate: {'; '.join(prompts)}"""
-
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {"role": "system", "content": COMPARISON_SYSTEM_PROMPT},
-            {"role": "user",   "content": user_message},
-        ],
-        temperature=0.3,
-    )
-
-    raw = response.choices[0].message.content.strip()
-    if raw.startswith("```"):
-        raw = raw.split("```")[1].replace("json", "").strip()
-
-    return ComparisonResponse(**json.loads(raw))
+    data = json.loads(raw)
+    return AnalysisResponse(**data)

@@ -4,7 +4,7 @@ const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 const api = axios.create({
   baseURL: BASE,
-  timeout: 60000,
+  timeout: 240000,   // real multi-model, multi-run analysis can take a few minutes
   headers: { 'Content-Type': 'application/json' },
 })
 
@@ -20,13 +20,8 @@ export async function runAnalysis(payload) {
   return data
 }
 
-/**
- * Run a competitor benchmarking analysis.
- * @param {{ brand: string, website: string, competitors: string[], region: string, prompts: string[] }} payload
- * @returns {Promise<ComparisonResponse>}
- */
-export async function runComparison(payload) {
-  const { data } = await api.post('/api/analysis/compare', payload)
+export async function runAudit(payload) {
+  const { data } = await api.post('/api/audit/run', payload)
   return data
 }
 
@@ -60,32 +55,4 @@ export async function deleteHistoryItem(id) {
 export async function clearHistory() {
   const { data } = await api.delete('/api/history/')
   return data
-}
-
-/**
- * Fetch AI-generated recommendations based on visibility gaps.
- * @param {string} brand - The name of the brand.
- * @param {Array} analysisData - The model results from the main analysis.
- * @returns {Promise<Object[]>}
- */
-export async function fetchRecommendations(brand, analysisData) {
-  try {
-    const { data } = await api.post('/api/analysis/recommendations', {
-      brand,
-      analysis_data: analysisData
-    });
-    
-    // The backend returns { recommendations: [...] }
-    return data.recommendations;
-  } catch (error) {
-    console.error("Failed to fetch recommendations:", error);
-    return [
-      {
-        type: "error",
-        title: "Connection Error",
-        description: "Could not connect to the recommendation engine.",
-        impact: "N/A"
-      }
-    ];
-  }
 }

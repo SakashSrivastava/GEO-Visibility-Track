@@ -23,15 +23,21 @@ export function exportCSV(data) {
   if (!data) return
 
   const rows = [
-    ['Model', 'Provider', 'Visibility Score', 'Mention Count', 'Sentiment', 'Sentiment Score', 'Position Rank'],
+    ['Model', 'Provider', 'Model ID', 'Visibility Score', 'Visibility Std', 'Appearance Rate', 'Runs',
+     'Mention Count', 'Sentiment', 'Sentiment Score', 'Position Rank', 'OK'],
     ...data.models.map(m => [
       m.name,
-      m.id,
+      m.provider,
+      m.model,
       m.visibility_score,
+      m.visibility_std,
+      m.appearance_rate,
+      m.run_count,
       m.mention_count,
       m.sentiment_label,
       m.sentiment_score,
-      m.position_rank,
+      m.position_rank ?? '',
+      m.ok,
     ]),
   ]
 

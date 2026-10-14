@@ -1,112 +1,83 @@
 # GEO Visibility Tracker
 
-Track how AI models (Claude, GPT-4, Gemini, Llama) mention your brand across different regions.
+Measure how a brand is represented in **AI-generated answers** — the way Search
+Engine Optimization measures ranking in Google. As discovery shifts from search
+engines to assistants like ChatGPT, Gemini and Claude, a brand that AI models
+never mention is invisible to a growing share of users. This tool measures that
+visibility across multiple real models, benchmarks it against competitors, tracks
+the sources models rely on, audits a site, and tests whether fixes actually help.
 
-## Project Overview
+> **Honest measurement.** Earlier prototypes asked a single LLM to *simulate* how
+> other models would answer and to invent the scores. This version **queries each
+> real model's API directly**, stores the **verbatim response**, and **computes**
+> every metric from that text with documented formulas — repeated over multiple
+> runs with statistics. Nothing is simulated. See [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md).
 
-GEO Visibility Tracker is a full-stack application designed to monitor and analyze how major AI language models mention your brand or products across different geographical regions. This tool provides valuable insights into your brand's visibility and presence in AI model responses, helping you understand global brand perception and reach.
+## Features
 
-## Key Features
+- **Multi-model visibility** — each discovery query is sent to every configured
+  model *N* times (the brand name is withheld, so we measure organic mentions),
+  and visibility, prominence, position, sentiment and mention count are computed
+  from the real text, aggregated with mean/std and an **appearance rate**.
+- **Share of Voice** — mention share of the brand vs named competitors, counted
+  from the real responses.
+- **Citation & source tracking** — which websites models rely on, from Gemini
+  search grounding (consulted sources) and URLs models cite in text.
+- **Website auditor + recommendations** — scores a page's GEO-readiness on a
+  documented rubric (structured data, statistics, authoritative phrasing, FAQ,
+  …) and generates prioritized, concrete fixes (JSON-LD, meta, content).
+- **Measurable-impact experiment** — a paired, significance-tested A/B in a
+  competitive pool that measures whether the recommended content *actually*
+  raises the brand's visibility, reported with a 95% confidence interval.
+- **Scheduled monitoring + drift alerts** *(in progress)* — re-run analyses on a
+  schedule, track trends over time, and alert when visibility drifts.
 
-- **Multi-Model Tracking**: Monitor mentions across Claude, GPT-4, Gemini, and Llama models
-- **Geo-Regional Analysis**: Track brand visibility by geographic regions
-- **Real-time Monitoring**: Get up-to-date insights on how AI models reference your brand
-- **Interactive Dashboard**: Beautiful React-based UI to visualize tracking data
-- **API Integration**: Seamless integration with Anthropic API and optional SerpAPI for search rankings
-- **Database Persistence**: SQLite database to store historical tracking data
-- **Competitive Benchmarking**: Description of competitive benchmarking features and benefits
-- **GEO Recommendation Engine**: Description of the GEO recommendation engine features and how it can be leveraged for better visibility tracking
-
-## Technology Stack
-
-- **Frontend**: React with Vite for fast development and optimized builds
-- **Backend**: Python FastAPI for high-performance async API server
-- **Database**: SQLite with async support (aiosqlite)
-- **AI Integration**: Anthropic Claude API for intelligent analysis
-- **Search Integration**: SerpAPI for real search ranking data (optional)
-
-## Use Cases
-
-- Monitor brand reputation across AI platforms
-- Understand how competitors are mentioned in AI responses
-- Track marketing campaign effectiveness in AI-generated content
-- Analyze regional differences in brand perception
-- Identify emerging trends in AI-based brand mentions
-
-## Project Structure
+## Architecture
 
 ```
-geo-visibility-tracker/
-├── frontend/                  # React + Vite app
-│   ├── src/
-│   │   ├── components/        # Reusable UI components
-│   │   ├── pages/             # Page-level components
-│   │   ├── services/          # API call functions
-│   │   ├── hooks/             # Custom React hooks
-│   │   └── utils/             # Helper functions
-│   ├── index.html
-│   ├── package.json
-│   └── vite.config.js
-├── backend/                   # Python FastAPI server
-│   ├── routers/               # Route handlers
-│   ├── services/              # Business logic
-│   ├── models/                # Pydantic schemas
-│   ├── main.py
-│   └── requirements.txt
-└── README.md
+frontend/   React + Vite dashboard (Analyze · Compare · Optimize · History)
+backend/    FastAPI + SQLAlchemy (SQLite)
+  providers/   pluggable real-model adapters (Groq, Gemini; OpenAI/Anthropic ready)
+  services/    query engine, metrics, citations, auditor, recommendations, experiment
+  routers/     /api/analysis, /api/history, /api/audit
 ```
 
-## Quick Start
+Models are resolved at runtime from whichever provider keys are configured, so
+adding a key is the only step needed to enable a model — see `MODEL_REGISTRY` in
+`backend/config.py`.
+
+## Setup
 
 ### Backend
 
 ```bash
 cd backend
 python -m venv venv
-source venv/bin/activate      # Windows: venv\Scripts\activate
+venv/Scripts/activate        # Windows  (source venv/bin/activate on macOS/Linux)
 pip install -r requirements.txt
-python -m uvicorn main:app --reload
+cp env.example .env          # then fill in your keys
+uvicorn main:app --reload --port 8000
 ```
+
+**API keys** (`backend/.env`): set `GROQ_API_KEY` (free) and/or `GEMINI_API_KEY`
+(free tier). Gemini also enables grounded citations. `OPENAI_API_KEY` /
+`ANTHROPIC_API_KEY` adapters activate automatically if added.
 
 ### Frontend
 
 ```bash
 cd frontend
 npm install
-npm run dev
+npm run dev                  # http://localhost:5173
 ```
 
-Open http://localhost:5173
+## Tech stack
 
-## Setup Instructions
+React · Vite · Recharts · FastAPI · Pydantic · SQLAlchemy · SQLite · httpx ·
+vaderSentiment · BeautifulSoup · APScheduler
 
-Follow these steps to setup the project:
+## Methodology
 
-1. Clone the repository.
-2. Install the required packages using `npm install`.
-3. Run the application using `npm start`.
-
-## Environment Variables
-
-Create `.env` files as per the instructions below:
-
-### backend/.env
-
-```
-ANTHROPIC_API_KEY=your_key_here
-SERPAPI_KEY=your_key_here        # optional, for real search rankings
-DATABASE_URL=sqlite+aiosqlite:///./geo_tracker.db
-CORS_ORIGINS=["http://localhost:5173"]
-```
-
-### frontend/.env
-
-```
-VITE_API_URL=http://localhost:8000
-```
-
-## Contribution Guidelines
-
-If you would like to contribute to this project, please fork the repository and submit a pull request.
-
----
+All metric formulas, the audit rubric, and the experiment design are documented
+in [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md) — written to be quotable in the
+project report.
