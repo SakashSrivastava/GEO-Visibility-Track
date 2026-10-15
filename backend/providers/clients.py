@@ -72,12 +72,21 @@ async def _gemini_call(client, model, prompt, temperature, grounded):
     return resp.json()
 
 
+# Once grounding is rejected (free tiers have little/no google_search quota), we
+# stop attempting it for the rest of the session to avoid wasting a call each time.
+_grounding_disabled = False
+_GROUNDING_REJECT = {400, 403, 429}
+
+
 async def _query_gemini(client, model, prompt, temperature, grounded) -> tuple[str, list]:
+    global _grounding_disabled
+    use_grounding = grounded and not _grounding_disabled
     try:
-        data = await _gemini_call(client, model, prompt, temperature, grounded)
+        data = await _gemini_call(client, model, prompt, temperature, use_grounding)
     except httpx.HTTPStatusError as e:
-        # Some tiers reject the search tool — fall back to an ungrounded call.
-        if grounded and e.response is not None and e.response.status_code == 400:
+        status = e.response.status_code if e.response is not None else 0
+        if use_grounding and status in _GROUNDING_REJECT:
+            _grounding_disabled = True            # circuit-breaker for the session
             data = await _gemini_call(client, model, prompt, temperature, False)
         else:
             raise

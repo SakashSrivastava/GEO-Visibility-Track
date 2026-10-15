@@ -44,9 +44,9 @@ settings = Settings()
 MODEL_REGISTRY = [
     {
         "id": "gemini",
-        "name": "Gemini 2.0 Flash",
+        "name": "Gemini Flash",
         "provider": "google",
-        "model": "gemini-2.0-flash",
+        "model": "gemini-flash-latest",   # alias tracks the current stable flash model
         "requires": "GEMINI_API_KEY",
         "color": "#a78bfa",
     },

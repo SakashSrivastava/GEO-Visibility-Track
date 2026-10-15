@@ -138,8 +138,10 @@ async def run_real_analysis(brand, region, prompts, competitors=None) -> tuple[A
 
 
 async def _geo_sweep(brand, prompts, models) -> list[GeoVisibility]:
-    """Cheap cross-region visibility using one representative model to respect free tiers."""
-    rep = [models[0]]
+    """Cheap cross-region visibility using one representative model to respect free tiers.
+    Prefers a fast, reliable Groq model (Gemini's free tier is slow/503-prone and
+    the sweep runs it across every region)."""
+    rep = [next((m for m in models if m["provider"] == "groq"), models[0])]
     aliases = brand_aliases(brand)
     out = []
     for reg in GEO_SWEEP:
