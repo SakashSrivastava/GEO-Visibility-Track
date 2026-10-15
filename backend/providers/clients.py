@@ -14,6 +14,18 @@ from config import settings
 RETRY_STATUS = {429, 500, 502, 503, 529}
 MAX_RETRIES = 3
 
+# Concise, human-readable reasons for common HTTP errors (instead of raw JSON).
+_REASON = {
+    400: "bad request", 401: "invalid API key", 403: "access denied",
+    404: "model unavailable", 429: "rate limit / quota exceeded",
+    500: "provider error", 502: "provider error", 503: "provider overloaded",
+    529: "provider overloaded",
+}
+
+
+def _friendly(status: int) -> str:
+    return f"HTTP {status} — {_REASON.get(status, 'request failed')}"
+
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
@@ -127,11 +139,11 @@ async def query_model(
             return ProviderResponse(**base, text=text, ok=True, citations=citations)
         except httpx.HTTPStatusError as e:
             status = e.response.status_code if e.response is not None else 0
-            last_err = f"HTTP {status}: {(e.response.text[:200] if e.response is not None else '')}"
+            last_err = _friendly(status)
             if status not in RETRY_STATUS:
                 break
-        except (httpx.TransportError, httpx.TimeoutException) as e:
-            last_err = f"network: {e}"
+        except (httpx.TransportError, httpx.TimeoutException):
+            last_err = "network error"
         except Exception as e:
             last_err = str(e)
             break

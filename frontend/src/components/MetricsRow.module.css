@@ -1,41 +1,55 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 14px;
+  margin-bottom: 22px;
 }
 
-@media (max-width: 700px) {
-  .grid { grid-template-columns: 1fr 1fr; }
-}
+@media (max-width: 760px) { .grid { grid-template-columns: 1fr 1fr; } }
 
 .card {
-  background: var(--bg2);
+  position: relative;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0)) var(--bg2);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 14px 16px;
+  padding: 18px;
+  overflow: hidden;
+  animation: fadeUp 0.4s var(--ease) both;
 }
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent-grad);
+  opacity: 0.8;
+}
+.card:nth-child(2)::before { background: var(--green); }
+.card:nth-child(3)::before { background: var(--amber); }
+.card:nth-child(4)::before { background: var(--purple); }
 
 .value {
   font-family: var(--font-mono);
-  font-size: 24px;
+  font-size: 30px;
   font-weight: 700;
-  margin-bottom: 2px;
-  line-height: 1.1;
+  margin-bottom: 4px;
+  line-height: 1;
+  letter-spacing: -0.02em;
 }
 
 .label {
   font-size: 11px;
   color: var(--text2);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
+  font-weight: 500;
 }
 
 .sub {
   font-size: 10px;
   color: var(--text3);
   font-family: var(--font-mono);
-  margin-top: 4px;
+  margin-top: 6px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

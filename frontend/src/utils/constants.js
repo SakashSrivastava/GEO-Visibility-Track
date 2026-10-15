@@ -2,9 +2,9 @@
 // returns in result.models, so this is just the default/legend set.
 export const MODELS = [
   { id: 'gemini',      name: 'Gemini Flash',     provider: 'Google',  color: '#a78bfa' },
-  { id: 'gpt-oss-120b',name: 'GPT-OSS 120B',     provider: 'OpenAI',  color: '#34d399' },
-  { id: 'qwen3',       name: 'Qwen3 27B',        provider: 'Alibaba', color: '#f59e0b' },
-  { id: 'gpt-oss-20b', name: 'GPT-OSS 20B',      provider: 'OpenAI',  color: '#4f8ef7' },
+  { id: 'gpt-oss-120b',name: 'GPT-OSS 120B',     provider: 'OpenAI',  color: '#3dd68c' },
+  { id: 'qwen3',       name: 'Qwen3 27B',        provider: 'Alibaba', color: '#f5a623' },
+  { id: 'gpt-oss-20b', name: 'GPT-OSS 20B',      provider: 'OpenAI',  color: '#5b8def' },
 ]
 
 export const REGIONS = [

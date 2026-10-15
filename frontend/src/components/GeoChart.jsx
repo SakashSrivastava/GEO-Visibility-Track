@@ -14,10 +14,11 @@ const CustomTooltip = ({ active, payload, label }) => {
   )
 }
 
+const C = { high: '#3dd68c', mid: '#5b8def', low: '#f76868' }
 function getBarColor(score) {
-  if (score >= 70) return '#34d399'
-  if (score >= 45) return '#4f8ef7'
-  return '#f87171'
+  if (score >= 70) return C.high
+  if (score >= 45) return C.mid
+  return C.low
 }
 
 export default function GeoChart({ geoData }) {
@@ -41,13 +42,13 @@ export default function GeoChart({ geoData }) {
             />
             <XAxis
               dataKey="region"
-              tick={{ fill: '#8b95b0', fontSize: 11, fontFamily: 'Space Mono, monospace' }}
+              tick={{ fill: '#99a1b3', fontSize: 11, fontFamily: 'JetBrains Mono, monospace' }}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
               domain={[0, 100]}
-              tick={{ fill: '#4a5470', fontSize: 10, fontFamily: 'Space Mono, monospace' }}
+              tick={{ fill: '#5b647a', fontSize: 10, fontFamily: 'JetBrains Mono, monospace' }}
               axisLine={false}
               tickLine={false}
               width={30}
@@ -64,9 +65,9 @@ export default function GeoChart({ geoData }) {
 
       {/* Legend */}
       <div className={styles.legend}>
-        <span><span className={styles.dot} style={{ background: '#34d399' }} /> High (70+)</span>
-        <span><span className={styles.dot} style={{ background: '#4f8ef7' }} /> Medium (45–69)</span>
-        <span><span className={styles.dot} style={{ background: '#f87171' }} /> Low (&lt;45)</span>
+        <span><span className={styles.dot} style={{ background: C.high }} /> High (70+)</span>
+        <span><span className={styles.dot} style={{ background: C.mid }} /> Medium (45–69)</span>
+        <span><span className={styles.dot} style={{ background: C.low }} /> Low (&lt;45)</span>
       </div>
     </div>
   )

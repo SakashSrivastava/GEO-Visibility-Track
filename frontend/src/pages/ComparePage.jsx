@@ -32,7 +32,7 @@ function RadarSection({ data }) {
           <PolarGrid stroke="rgba(255,255,255,0.06)" />
           <PolarAngleAxis
             dataKey="metric"
-            tick={{ fill: '#8b95b0', fontSize: 11, fontFamily: 'Space Mono, monospace' }}
+            tick={{ fill: '#99a1b3', fontSize: 11, fontFamily: 'JetBrains Mono, monospace' }}
           />
           <PolarRadiusAxis
             angle={90}
@@ -63,7 +63,7 @@ function RadarSection({ data }) {
             )
           })}
           <Legend
-            wrapperStyle={{ fontSize: '11px', fontFamily: 'Space Mono, monospace', paddingTop: '8px' }}
+            wrapperStyle={{ fontSize: '11px', fontFamily: 'JetBrains Mono, monospace', paddingTop: '8px' }}
           />
         </RadarChart>
       </ResponsiveContainer>

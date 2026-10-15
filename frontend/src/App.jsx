@@ -31,7 +31,7 @@ export default function App() {
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <Header view={view} setView={setView} status={status} user={user} onAuth={setUser} />
 
-      <main style={{ flex: 1, padding: '24px', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
+      <main style={{ flex: 1, padding: '32px 28px 80px', maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
         {view === 'analyze' && (
           <AnalyzePage
             analysisData={analysisData}

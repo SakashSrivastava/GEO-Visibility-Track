@@ -1,9 +1,10 @@
 .panel {
-  background: var(--bg2);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0)) var(--bg2);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 18px;
-  margin-bottom: 20px;
+  border-radius: var(--radius-xl);
+  padding: 22px 24px;
+  margin-bottom: 22px;
+  box-shadow: var(--shadow-md);
 }
 .panelTitle, .sectionTitle {
   font-family: var(--font-mono);
@@ -29,9 +30,12 @@
 .input:focus { outline: none; border-color: var(--accent); }
 
 .runBtn {
-  background: var(--accent); color: #fff; border: none;
-  border-radius: var(--radius-md); padding: 10px 18px; font-weight: 700; font-size: 13px; white-space: nowrap;
+  background: var(--accent-grad); color: #fff; border: none;
+  border-radius: var(--radius-md); padding: 11px 20px; font-weight: 600; font-size: 13.5px; white-space: nowrap;
+  box-shadow: 0 4px 14px var(--accent-glow);
+  transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
 }
+.runBtn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 22px var(--accent-glow); }
 .runBtn:disabled { opacity: 0.6; cursor: default; }
 
 .tagsRow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
