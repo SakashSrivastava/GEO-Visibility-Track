@@ -1,5 +1,11 @@
 # GEO Visibility Tracker
 
+[![CI](https://github.com/SakashSrivastava/GEO-Visibility-Track/actions/workflows/ci.yml/badge.svg)](https://github.com/SakashSrivastava/GEO-Visibility-Track/actions/workflows/ci.yml)
+[![Deploy](https://github.com/SakashSrivastava/GEO-Visibility-Track/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/SakashSrivastava/GEO-Visibility-Track/actions/workflows/deploy-pages.yml)
+
+**Live UI:** https://sakashsrivastava.github.io/GEO-Visibility-Track/
+_(front end only — connect a hosted backend via the `VITE_API_URL` repo variable to enable live data)_
+
 Measure how a brand is represented in **AI-generated answers** — the way Search
 Engine Optimization measures ranking in Google. As discovery shifts from search
 engines to assistants like ChatGPT, Gemini and Claude, a brand that AI models
