@@ -31,16 +31,73 @@ docker compose up --build
 - **Free-tier quotas**: scheduled analyses consume API calls. Keep monitor
   intervals reasonable (hourly/daily) and `RUNS_PER_PROMPT` modest.
 
-## Option A — Azure (Container Apps)
+## Option A — Backend on Azure Container Apps (recommended; Azure for Students)
 
-1. Push both images to Azure Container Registry (`az acr build`).
-2. Create a Container Apps environment.
-3. Deploy the backend app (1 replica), set env vars/secrets, enable ingress on
-   port 8000.
-4. Deploy the frontend app built with `VITE_API_URL` = the backend's URL.
-5. Set the backend's `CORS_ORIGINS` to the frontend's URL.
+With **Azure for Students** ($100 credit, no card) you can run one always-on
+replica — no cold starts, and the monitor scheduler runs continuously. The
+workflow `.github/workflows/deploy-azure.yml` builds the image, pushes it to
+GHCR, and updates the Container App on every push to `backend/**`.
 
-(Alternatively Azure App Service: one Web App for Containers per image.)
+### One-time setup
+
+Prereqs: an Azure for Students subscription and the `az` CLI (`az login`).
+
+**1. Push the image once.** Trigger the Azure workflow (push to `backend/**` or
+run it manually). It builds and pushes `ghcr.io/sakashsrivastava/geo-visibility-api`
+to GHCR. Then make that package **public**: GitHub → your profile → Packages →
+`geo-visibility-api` → Package settings → Change visibility → Public (so Azure
+can pull it without registry credentials).
+
+**2. Create the Container App** (replace the key values):
+
+```bash
+az provider register -n Microsoft.App --wait
+az group create -n geo-visibility-rg -l centralindia
+az containerapp env create -n geo-visibility-env -g geo-visibility-rg -l centralindia
+
+az containerapp create \
+  -n geo-visibility-api -g geo-visibility-rg --environment geo-visibility-env \
+  --image ghcr.io/sakashsrivastava/geo-visibility-api:latest \
+  --target-port 8000 --ingress external \
+  --min-replicas 1 --max-replicas 1 \
+  --secrets groq=<YOUR_GROQ_KEY> gemini=<YOUR_GEMINI_KEY> jwt=<RANDOM_STRING> \
+  --env-vars \
+    CORS_ORIGINS='["https://sakashsrivastava.github.io"]' \
+    DATABASE_URL='sqlite+aiosqlite:///./geo_tracker.db' \
+    GROQ_API_KEY=secretref:groq \
+    GEMINI_API_KEY=secretref:gemini \
+    JWT_SECRET=secretref:jwt
+```
+
+**3. Get the public URL:**
+
+```bash
+az containerapp show -n geo-visibility-api -g geo-visibility-rg \
+  --query properties.configuration.ingress.fqdn -o tsv
+# -> geo-visibility-api.<hash>.centralindia.azurecontainerapps.io
+```
+
+**4. Wire the frontend:** GitHub → Settings → Secrets and variables → Actions →
+Variables → add `VITE_API_URL` = `https://<that-fqdn>`. Re-run the Pages deploy.
+
+**5. Enable auto-deploy:** create a service principal and store it as a GitHub
+secret so the workflow can update the app on future pushes:
+
+```bash
+SUB=$(az account show --query id -o tsv)
+az ad sp create-for-rbac --name geo-deploy \
+  --role contributor \
+  --scopes /subscriptions/$SUB/resourceGroups/geo-visibility-rg \
+  --sdk-auth
+# Copy the JSON output into a GitHub repo secret named AZURE_CREDENTIALS.
+```
+
+After that, every push to `backend/**` rebuilds the image and rolls it out to
+Azure automatically. Update a secret value later with:
+`az containerapp secret set -n geo-visibility-api -g geo-visibility-rg --secrets groq=<new>`.
+
+(Alternatively, with student credit you can use Azure App Service for Containers
+— one Web App per image — but Container Apps is simpler and cheaper here.)
 
 ## Option B — Split hosting (current setup: GitHub Pages + Render)
 
