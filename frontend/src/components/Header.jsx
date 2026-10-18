@@ -8,15 +8,15 @@ const STATUS_CONFIG = {
   error:   { cls: styles.error,   label: 'ERROR'   },
 }
 
-export default function Header({ view, setView, status, user, onAuth }) {
+export default function Header({ view, setView, status, user, onAuth, onHome }) {
   const { cls, label } = STATUS_CONFIG[status] || STATUS_CONFIG.idle
 
   return (
     <header className={styles.header}>
-      <div className={styles.logo}>
+      <button className={styles.logo} onClick={onHome} title="Back to home">
         <span className={styles.logoDot} />
         GEO·VISIBILITY·TRACKER
-      </div>
+      </button>
 
       <nav className={styles.nav}>
         {['analyze', 'compare', 'optimize', 'monitor', 'history'].map(v => (

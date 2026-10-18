@@ -6,8 +6,10 @@ import ComparePage from './pages/ComparePage.jsx'
 import OptimizePage from './pages/OptimizePage.jsx'
 import MonitorPage from './pages/MonitorPage.jsx'
 import HistoryPage from './pages/HistoryPage.jsx'
+import LandingPage from './pages/LandingPage.jsx'
 
 export default function App() {
+  const [entered, setEntered]     = useState(false)
   const [view, setView]           = useState('analyze')
   const [analysisData, setData]   = useState(null)
   const [status, setStatus]       = useState('idle') // idle | loading | live | error
@@ -27,9 +29,12 @@ export default function App() {
     setView('analyze')
   }
 
+  if (!entered) return <LandingPage onLaunch={() => setEntered(true)} />
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <Header view={view} setView={setView} status={status} user={user} onAuth={setUser} />
+      <Header view={view} setView={setView} status={status} user={user} onAuth={setUser}
+              onHome={() => setEntered(false)} />
 
       <main style={{ flex: 1, padding: '32px 28px 80px', maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
         {view === 'analyze' && (

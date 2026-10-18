@@ -1,0 +1,24 @@
+# Render Blueprint — deploys the FastAPI backend as a Docker web service.
+# In Render: New + > Blueprint > connect this repo. Render reads this file, then
+# asks you to fill the two secret keys (GROQ_API_KEY, GEMINI_API_KEY).
+# After it deploys, copy the service URL into the GitHub repo variable
+# VITE_API_URL so the GitHub Pages frontend can reach it.
+services:
+  - type: web
+    name: geo-visibility-api
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false            # set in the Render dashboard (secret)
+      - key: GEMINI_API_KEY
+        sync: false            # set in the Render dashboard (secret)
+      - key: JWT_SECRET
+        generateValue: true    # Render generates a strong secret
+      - key: CORS_ORIGINS
+        value: '["https://sakashsrivastava.github.io"]'
+      - key: DATABASE_URL
+        value: sqlite+aiosqlite:///./geo_tracker.db

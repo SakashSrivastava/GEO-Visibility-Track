@@ -42,11 +42,41 @@ docker compose up --build
 
 (Alternatively Azure App Service: one Web App for Containers per image.)
 
-## Option B — Split hosting
+## Option B — Split hosting (current setup: GitHub Pages + Render)
 
-- **Frontend** → Vercel or Netlify (static build; set `VITE_API_URL`).
-- **Backend** → Railway / Render / Fly.io (container; set env vars; 1 instance).
-- Point `CORS_ORIGINS` at the frontend domain.
+The frontend already auto-deploys to **GitHub Pages** via
+`.github/workflows/deploy-pages.yml` →
+`https://sakashsrivastava.github.io/GEO-Visibility-Track/`. Host the backend
+separately and connect the two.
+
+### Backend on Render (recommended, free, one file)
+
+1. Push includes `render.yaml` (a Blueprint). In Render: **New + → Blueprint →
+   connect this repo**. Render reads `render.yaml` and creates the Docker web
+   service `geo-visibility-api`.
+2. When prompted, paste your `GROQ_API_KEY` and `GEMINI_API_KEY` (marked
+   `sync: false` so they stay secret). `JWT_SECRET` is auto-generated.
+3. Deploy. Copy the service URL, e.g. `https://geo-visibility-api.onrender.com`.
+4. In GitHub: **Settings → Secrets and variables → Actions → Variables → New** →
+   `VITE_API_URL` = that URL. Re-run the Pages deploy (push or "Re-run jobs").
+5. The live frontend now talks to the backend. `CORS_ORIGINS` is already set to
+   the Pages origin in `render.yaml`.
+
+Notes: Render's free tier sleeps after ~15 min idle (first request wakes it,
+~30 s) and its disk is ephemeral (SQLite resets on redeploy — fine for a demo;
+use Render Postgres for persistence). Because it may sleep, scheduled monitors
+only run while the service is awake.
+
+### Backend on Railway (alternative)
+
+New project → Deploy from repo → set **Root Directory** to `backend` (uses the
+Dockerfile) → add the same env vars → deploy → copy the public URL into
+`VITE_API_URL`.
+
+### Frontend elsewhere
+
+Vercel/Netlify also work for the frontend (static build; set `VITE_API_URL`) if
+you prefer them over GitHub Pages.
 
 ## GitHub
 
