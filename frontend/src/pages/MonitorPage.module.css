@@ -30,12 +30,13 @@
 .input:focus { outline: none; border-color: var(--accent); }
 
 .runBtn {
-  background: var(--accent-grad); color: #fff; border: none;
-  border-radius: var(--radius-md); padding: 11px 20px; font-weight: 600; font-size: 13.5px; white-space: nowrap;
-  box-shadow: 0 4px 14px var(--accent-glow);
-  transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
+  background: var(--accent); color: #fff; border: none;
+  border-radius: var(--radius-sm); padding: 11px 20px; font-weight: 600; font-size: 13.5px; white-space: nowrap;
+  box-shadow: 3px 3px 0 var(--text);
+  transition: transform 0.13s var(--ease), box-shadow 0.13s var(--ease);
 }
-.runBtn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 22px var(--accent-glow); }
+.runBtn:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--text); }
+.runBtn:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--text); }
 .runBtn:disabled { opacity: 0.6; cursor: default; }
 
 .tagsRow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 14px; }

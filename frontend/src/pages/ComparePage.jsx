@@ -29,15 +29,15 @@ function RadarSection({ data }) {
       <p className={styles.sectionTitle}>// Radar Comparison</p>
       <ResponsiveContainer width="100%" height={300}>
         <RadarChart data={radarData} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
-          <PolarGrid stroke="rgba(255,255,255,0.06)" />
+          <PolarGrid stroke="rgba(22,21,15,0.1)" />
           <PolarAngleAxis
             dataKey="metric"
-            tick={{ fill: '#99a1b3', fontSize: 11, fontFamily: 'JetBrains Mono, monospace' }}
+            tick={{ fill: '#5c5648', fontSize: 11, fontFamily: 'JetBrains Mono, monospace' }}
           />
           <PolarRadiusAxis
             angle={90}
             domain={[0, 100]}
-            tick={{ fill: '#4a5470', fontSize: 9 }}
+            tick={{ fill: '#948c79', fontSize: 9 }}
             tickCount={4}
           />
           <Tooltip

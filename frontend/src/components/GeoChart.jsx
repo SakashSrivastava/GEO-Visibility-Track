@@ -14,7 +14,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   )
 }
 
-const C = { high: '#3dd68c', mid: '#5b8def', low: '#f76868' }
+const C = { high: '#1f8a5b', mid: '#bb7d17', low: '#cf4327' }
 function getBarColor(score) {
   if (score >= 70) return C.high
   if (score >= 45) return C.mid
@@ -37,23 +37,23 @@ export default function GeoChart({ geoData }) {
           <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="rgba(255,255,255,0.04)"
+              stroke="rgba(22,21,15,0.07)"
               vertical={false}
             />
             <XAxis
               dataKey="region"
-              tick={{ fill: '#99a1b3', fontSize: 11, fontFamily: 'JetBrains Mono, monospace' }}
+              tick={{ fill: '#5c5648', fontSize: 11, fontFamily: 'JetBrains Mono, monospace' }}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
               domain={[0, 100]}
-              tick={{ fill: '#5b647a', fontSize: 10, fontFamily: 'JetBrains Mono, monospace' }}
+              tick={{ fill: '#948c79', fontSize: 10, fontFamily: 'JetBrains Mono, monospace' }}
               axisLine={false}
               tickLine={false}
               width={30}
             />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(22,21,15,0.04)' }} />
             <Bar dataKey="score" radius={[4, 4, 0, 0]} maxBarSize={56}>
               {chartData.map((entry, i) => (
                 <Cell key={i} fill={getBarColor(entry.score)} fillOpacity={0.85} />

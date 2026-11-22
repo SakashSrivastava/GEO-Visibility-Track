@@ -29,9 +29,9 @@
 .card:nth-child(4)::before { background: var(--purple); }
 
 .value {
-  font-family: var(--font-mono);
-  font-size: 30px;
-  font-weight: 700;
+  font-family: var(--font-serif);
+  font-size: 38px;
+  font-weight: 600;
   margin-bottom: 4px;
   line-height: 1;
   letter-spacing: -0.02em;

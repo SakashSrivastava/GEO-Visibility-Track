@@ -61,7 +61,7 @@
   padding-bottom: 14px;
   border-bottom: 1px dashed var(--border);
 }
-.appearPct { font-family: var(--font-mono); font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+.appearPct { font-family: var(--font-serif); font-size: 34px; font-weight: 600; letter-spacing: -0.02em; }
 .appearLbl { font-size: 11px; color: var(--text2); line-height: 1.35; }
 
 /* Score bars */
