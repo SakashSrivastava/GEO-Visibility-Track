@@ -7,6 +7,7 @@ Assembles a full AnalysisResponse from REAL model responses:
 All numbers trace back to text a model actually produced; nothing is simulated.
 """
 import re
+import asyncio
 import statistics
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
@@ -149,20 +150,34 @@ async def _geo_sweep(brand, prompts, models) -> list[GeoVisibility]:
     gem = next((m for m in models if m["provider"] == "google"), None)
     groq = next((m for m in models if m["provider"] == "groq"), None)
     primary = gem or groq or models[0]
-    fallback = (groq if primary is gem else gem) or None
+    other = (groq if primary is gem else gem)
     aliases = brand_aliases(brand)
     # One representative prompt is enough to gauge regional variation, and it keeps
     # the sweep cheap (regions x 1 prompt instead of regions x every prompt).
     sweep_prompts = prompts[:1] or prompts
 
-    by_region = await run_regions(sweep_prompts, GEO_SWEEP, settings.GEO_RUNS_PER_PROMPT, [primary])
-    # Retry only the regions that got no usable response, on the other provider.
-    failed = [reg for reg in GEO_SWEEP if not any(r["ok"] for r in by_region.get(reg, []))]
-    if failed and fallback is not None:
-        retry = await run_regions(sweep_prompts, failed, settings.GEO_RUNS_PER_PROMPT, [fallback])
-        for reg in failed:
-            if any(r["ok"] for r in retry.get(reg, [])):
-                by_region[reg] = retry[reg]
+    # The sweep runs after the main analysis has already loaded the free tiers, so
+    # some regions get rate-limited on the first try. Retry just those regions with
+    # a short pause (so the per-minute quota window can recover) and then on the
+    # other provider. A region is left at 0 only when every attempt returned a real
+    # response in which the brand was simply not mentioned, not when calls dropped.
+    by_region: dict[str, list] = {}
+    pending = list(GEO_SWEEP)
+    attempts = [(primary, 0.0), (primary, 3.0), (other, 3.0)]
+    for model, pause in attempts:
+        if not pending or model is None:
+            continue
+        if pause:
+            await asyncio.sleep(pause)
+        res = await run_regions(sweep_prompts, pending, settings.GEO_RUNS_PER_PROMPT, [model])
+        still = []
+        for reg in pending:
+            if any(r["ok"] for r in res.get(reg, [])):
+                by_region[reg] = res[reg]          # got a usable response, keep it
+            else:
+                by_region.setdefault(reg, res.get(reg, []))
+                still.append(reg)                  # all failed, try again next round
+        pending = still
 
     out = []
     for reg in GEO_SWEEP:
