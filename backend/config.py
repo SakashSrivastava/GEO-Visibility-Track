@@ -20,7 +20,9 @@ class Settings(BaseSettings):
     # ── Measurement settings ─────────────────────────────────────────────────
     # Each (model x prompt) is queried RUNS_PER_PROMPT times at a non-zero
     # temperature; metrics are aggregated across runs so scores carry variance.
-    RUNS_PER_PROMPT: int = 3
+    # 2 keeps a mean + std while cutting the per-analysis call count by a third,
+    # which leaves more free-tier headroom so the geo sweep isn't rate-limited.
+    RUNS_PER_PROMPT: int = 2
     GEO_RUNS_PER_PROMPT: int = 1    # geo sweep is runs x regions x models, kept cheap
     QUERY_TEMPERATURE: float = 0.7  # >0 so stochastic variation is real, not faked
     MAX_CONCURRENCY: int = 8        # global cap on in-flight provider calls
