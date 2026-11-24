@@ -21,10 +21,14 @@ class Settings(BaseSettings):
     # Each (model x prompt) is queried RUNS_PER_PROMPT times at a non-zero
     # temperature; metrics are aggregated across runs so scores carry variance.
     RUNS_PER_PROMPT: int = 3
-    GEO_RUNS_PER_PROMPT: int = 1    # geo sweep is runs x regions x models — kept cheap
+    GEO_RUNS_PER_PROMPT: int = 1    # geo sweep is runs x regions x models, kept cheap
     QUERY_TEMPERATURE: float = 0.7  # >0 so stochastic variation is real, not faked
-    MAX_CONCURRENCY: int = 6        # global cap on in-flight provider calls
-    REQUEST_TIMEOUT: float = 60.0
+    MAX_CONCURRENCY: int = 8        # global cap on in-flight provider calls
+    # Per-provider cap. Groq's models share one account rate limit, so this keeps
+    # Groq's in-flight calls in a safe band while letting a different provider
+    # (Gemini) run alongside instead of competing for the same global slots.
+    MAX_CONCURRENCY_PER_PROVIDER: int = 5
+    REQUEST_TIMEOUT: float = 45.0
     GROUNDING_ENABLED: bool = True  # ask Gemini to ground answers in web search (Feature 2)
     EXPERIMENT_RUNS: int = 3        # runs per prompt per condition in the impact experiment (Feature 3)
     EXPERIMENT_TEMPERATURE: float = 0.2   # low temp isolates the content effect (paired A/B)
@@ -44,9 +48,12 @@ settings = Settings()
 MODEL_REGISTRY = [
     {
         "id": "gemini",
-        "name": "Gemini Flash",
+        "name": "Gemini Flash Lite",
         "provider": "google",
-        "model": "gemini-flash-latest",   # alias tracks the current stable flash model
+        # flash-lite-latest tracks the current lite model and has the most generous
+        # free-tier quota; the full flash alias (gemini-flash-latest / 3.8-flash) is
+        # frequently 429 rate-limited on the free tier. Edit here if a key has billing.
+        "model": "gemini-flash-lite-latest",
         "requires": "GEMINI_API_KEY",
         "color": "#a78bfa",
     },

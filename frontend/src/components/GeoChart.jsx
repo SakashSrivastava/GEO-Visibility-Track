@@ -66,7 +66,7 @@ export default function GeoChart({ geoData }) {
       {/* Legend */}
       <div className={styles.legend}>
         <span><span className={styles.dot} style={{ background: C.high }} /> High (70+)</span>
-        <span><span className={styles.dot} style={{ background: C.mid }} /> Medium (45–69)</span>
+        <span><span className={styles.dot} style={{ background: C.mid }} /> Medium (45 to 69)</span>
         <span><span className={styles.dot} style={{ background: C.low }} /> Low (&lt;45)</span>
       </div>
     </div>

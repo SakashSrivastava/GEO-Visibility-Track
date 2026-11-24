@@ -91,7 +91,7 @@ export default function QueryPanel({ onRun, loading, analysisData }) {
       {/* Competitors (Share of Voice) */}
       <div className={styles.row}>
         <div className={styles.field} style={{ flex: 1 }}>
-          <label className={styles.label}>Competitors — for Share of Voice (comma-separated, optional)</label>
+          <label className={styles.label}>Competitors for Share of Voice (comma-separated, optional)</label>
           <input
             className={styles.input}
             type="text"

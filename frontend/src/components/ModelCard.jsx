@@ -44,7 +44,7 @@ export default function ModelCard({ model }) {
             {model.name}
             <span className={styles.provider}>{meta.provider}</span>
           </div>
-          <span className={styles.rank}>—</span>
+          <span className={styles.rank}>n/a</span>
         </div>
         <div className={styles.body}>
           <div className={styles.errorMsg}>No usable response<br />{model.error}</div>
@@ -61,7 +61,7 @@ export default function ModelCard({ model }) {
           {model.name}
           <span className={styles.provider}>{meta.provider}</span>
         </div>
-        <span className={styles.rank}>{model.position_rank ? `#${model.position_rank}` : '—'}</span>
+        <span className={styles.rank}>{model.position_rank ? `#${model.position_rank}` : 'n/a'}</span>
       </div>
 
       <div className={styles.body}>

@@ -9,9 +9,11 @@ export default function Citations({ data }) {
           No sources were cited in this analysis.
           <br />
           Grounded citations appear when a model's API reports the web pages it
-          consulted — currently Gemini search grounding. Add <code>GEMINI_API_KEY</code> to
-          enable it. Non-grounded models (GPT-OSS, Qwen) only contribute sources when they
-          write URLs into their answers.
+          consulted, which for now means Gemini search grounding. That feature needs a
+          Gemini key with billing enabled; on the free tier Google blocks the grounding
+          tool, so grounded sources stay empty even though the key is set. The other
+          models (GPT-OSS, Qwen) only contribute sources when they write URLs into their
+          own answers.
         </div>
       </div>
     )
@@ -21,7 +23,7 @@ export default function Citations({ data }) {
 
   return (
     <div className={styles.wrap}>
-      <p className={styles.title}>// Sources the models relied on — ranked by how often each domain was cited</p>
+      <p className={styles.title}>// Sources the models relied on, ranked by how often each domain was cited</p>
       <div className={styles.rows}>
         {data.map(d => (
           <div key={d.domain} className={styles.row}>

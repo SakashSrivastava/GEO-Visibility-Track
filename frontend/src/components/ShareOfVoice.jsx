@@ -6,7 +6,7 @@ export default function ShareOfVoice({ data, brand }) {
 
   return (
     <div className={styles.wrap}>
-      <p className={styles.title}>// Share of Voice — % of category mentions across all real model responses</p>
+      <p className={styles.title}>// Share of Voice · % of category mentions across all real model responses</p>
       <div className={styles.rows}>
         {data.map(d => (
           <div key={d.name} className={`${styles.row} ${d.is_target ? styles.target : ''}`}>
@@ -25,7 +25,7 @@ export default function ShareOfVoice({ data, brand }) {
         ))}
       </div>
       <p className={styles.note}>
-        Mentions are counted from the verbatim text each model actually returned — not estimated.
+        Mentions are counted from the verbatim text each model actually returned, not estimated.
       </p>
     </div>
   )

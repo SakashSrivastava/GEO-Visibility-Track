@@ -11,19 +11,19 @@ const DEMO = [
 ]
 
 const CAPS = [
-  { n: '01', t: 'Multi-model visibility', b: 'Query every real model directly — Gemini, GPT-OSS, Qwen — and measure where your brand actually appears, repeated over multiple runs with full statistics.' },
-  { n: '02', t: 'Share of Voice', b: 'What proportion of AI mentions in your category belong to you versus named competitors — counted from the real responses, not estimated.' },
+  { n: '01', t: 'Multi-model visibility', b: 'Query every real model directly (Gemini, GPT-OSS, Qwen) and measure where your brand actually appears, repeated over multiple runs with full statistics.' },
+  { n: '02', t: 'Share of Voice', b: 'What proportion of AI mentions in your category belong to you versus named competitors, counted from the real responses rather than estimated.' },
   { n: '03', t: 'Citation tracking', b: 'Which websites the models rely on, from grounded search sources to the URLs they cite directly in their answers.' },
-  { n: '04', t: 'Audit & live experiment', b: 'Score your site’s GEO-readiness, generate prioritized fixes, then prove — with a significance-tested A/B — whether those fixes raise your visibility.' },
+  { n: '04', t: 'Audit & live experiment', b: 'Score your site’s GEO-readiness, generate prioritized fixes, then prove whether those fixes raise your visibility with a significance-tested A/B.' },
   { n: '05', t: 'Monitoring & drift alerts', b: 'Track visibility on a schedule and get alerted the moment your brand slips below where it should be.' },
   { n: '06', t: 'Accounts & reports', b: 'Private history and monitors per account, with one-click PDF and CSV export of any analysis.' },
 ]
 
 const STEPS = [
-  { n: '01', t: 'Ask real models', b: 'We send your discovery queries to each model’s live API — without naming your brand — so we measure organic visibility.' },
+  { n: '01', t: 'Ask real models', b: 'We send your discovery queries to each model’s live API, without naming your brand, so we measure organic visibility.' },
   { n: '02', t: 'Store every word', b: 'The verbatim answer from each run is saved, so every number traces back to the exact text that produced it.' },
   { n: '03', t: 'Compute, not guess', b: 'Visibility, position and sentiment are derived from the real text with documented formulas, aggregated across runs.' },
-  { n: '04', t: 'Track & improve', b: 'Benchmark competitors, audit the site, test fixes, and watch the trend — all from one dashboard.' },
+  { n: '04', t: 'Track & improve', b: 'Benchmark competitors, audit the site, test fixes, and watch the trend, all from one dashboard.' },
 ]
 
 const MARQUEE = ['Gemini', 'GPT-OSS 120B', 'Qwen3', 'Share of Voice', 'Citations', 'Drift alerts', 'GEO audit', 'A/B experiment', 'PDF reports']
@@ -99,8 +99,8 @@ export default function LandingPage({ onLaunch }) {
             <span className={styles.ital}>talks about</span> your brand.
           </h1>
           <p className={styles.lede}>
-            Discovery is moving from search engines to AI assistants. We measure — with
-            real model queries, never simulations — how often and how favorably the models
+            Discovery is moving from search engines to AI assistants. We measure, with
+            real model queries and never simulations, how often and how favorably the models
             name your brand, and exactly how to improve it.
           </p>
           <div className={styles.ctas}>
@@ -123,7 +123,7 @@ export default function LandingPage({ onLaunch }) {
           <label className={styles.widgetLabel}>Brand</label>
           <input className={styles.widgetInput} value={brand}
                  onChange={e => setBrand(e.target.value || ' ')} spellCheck="false" />
-          <p className={styles.widgetCap}>Visibility across models for “{brand.trim() || '—'}”</p>
+          <p className={styles.widgetCap}>Visibility across models for “{brand.trim() || 'your brand'}”</p>
           <div className={styles.board} key={seed}>
             {DEMO.map((m, i) => (
               <div key={m.name} className={styles.row}>
@@ -153,12 +153,12 @@ export default function LandingPage({ onLaunch }) {
         <p className={styles.kickerDark}>The shift</p>
         <p className={styles.bigQuote}>
           Ranking <span className={styles.hl}>#1 on Google</span> means nothing if the AI
-          never mentions you. A direct answer names some brands and ignores others — with
+          never mentions you. A direct answer names some brands and ignores others, with
           no links, and no transparency. Traditional SEO tools can’t see this channel at all.
         </p>
       </section>
 
-      {/* Capabilities — editorial index */}
+      {/* Capabilities: editorial index */}
       <section id="index" className={styles.section}>
         <div className={`${styles.secHead} ${styles.reveal}`}>
           <p className={styles.eyebrow}>Capabilities</p>
@@ -206,7 +206,7 @@ export default function LandingPage({ onLaunch }) {
           <span className={styles.mark} />
           <div>
             <p className={styles.footName}>GEO · Visibility Tracker</p>
-            <p className={styles.footNote}>Built with real model APIs — not simulations.</p>
+            <p className={styles.footNote}>Built with real model APIs, not simulations.</p>
           </div>
         </div>
         <div className={styles.footLinks}>

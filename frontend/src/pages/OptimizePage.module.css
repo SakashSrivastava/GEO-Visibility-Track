@@ -56,6 +56,16 @@
   padding: 4px 11px;
   font-size: 11px;
 }
+.customInput {
+  background: var(--bg3);
+  border: 1px dashed var(--border);
+  color: var(--text);
+  border-radius: 20px;
+  padding: 4px 11px;
+  font-size: 11px;
+  min-width: 170px;
+}
+.customInput:focus { outline: none; border-color: var(--accent); border-style: solid; }
 .tagActive { background: var(--accent-glow); border-color: var(--accent); color: var(--accent); }
 
 .checkbox {

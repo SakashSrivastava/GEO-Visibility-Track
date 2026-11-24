@@ -16,7 +16,7 @@ export default function CompareTable({ data }) {
 
   return (
     <div className={styles.wrapper}>
-      <p className={styles.title}>// Model Comparison Matrix — {data.brand} · {data.region.toUpperCase()}</p>
+      <p className={styles.title}>// Model Comparison Matrix · {data.brand} · {data.region.toUpperCase()}</p>
       <table className={styles.table}>
         <thead>
           <tr>

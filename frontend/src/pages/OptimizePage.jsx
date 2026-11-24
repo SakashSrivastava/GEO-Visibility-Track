@@ -13,10 +13,22 @@ export default function OptimizePage({ analysisData }) {
   const [brand, setBrand] = useState(analysisData?.brand || '')
   const [url,   setUrl]   = useState('')
   const [prompts, setPrompts] = useState(new Set(['Top AI companies']))
+  const [custom,  setCustom]  = useState([])
+  const [cInput,  setCInput]  = useState('')
   const [runExp, setRunExp]   = useState(true)
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState(null)
   const [data,    setData]    = useState(null)
+
+  const allPrompts = [...PROMPT_TEMPLATES, ...custom]
+
+  function addCustom() {
+    const p = cInput.trim()
+    if (!p) return
+    if (!custom.includes(p) && !PROMPT_TEMPLATES.includes(p)) setCustom(prev => [...prev, p])
+    setPrompts(prev => new Set(prev).add(p))
+    setCInput('')
+  }
 
   // Carried over from the last analysis: keyword gaps + the competitive field for the experiment
   const missingKeywords = [...new Set((analysisData?.models || []).flatMap(m => m.keywords_missing || []))]
@@ -68,10 +80,17 @@ export default function OptimizePage({ analysisData }) {
 
         <div className={styles.tagsRow}>
           <span className={styles.tagsLabel}>EXPERIMENT PROMPTS:</span>
-          {PROMPT_TEMPLATES.map(p => (
+          {allPrompts.map(p => (
             <button key={p} className={`${styles.tag} ${prompts.has(p) ? styles.tagActive : ''}`}
                     onClick={() => toggle(p)}>{p}</button>
           ))}
+          <input
+            className={styles.customInput}
+            value={cInput}
+            onChange={e => setCInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCustom())}
+            placeholder="+ add your own query"
+          />
           <label className={styles.checkbox}>
             <input type="checkbox" checked={runExp} onChange={e => setRunExp(e.target.checked)} />
             Run impact experiment
@@ -128,7 +147,7 @@ export default function OptimizePage({ analysisData }) {
           {/* Experiment */}
           {exp?.ran && (
             <div className={styles.expCard}>
-              <p className={styles.sectionTitle}>// Measurable-Impact Experiment — paired A/B in a competitive pool</p>
+              <p className={styles.sectionTitle}>// Measurable-Impact Experiment · paired A/B in a competitive pool</p>
               <div className={styles.expBars}>
                 <div className={styles.expBar}>
                   <span className={styles.expLbl}>Without recommendations</span>
@@ -146,7 +165,7 @@ export default function OptimizePage({ analysisData }) {
               <div className={styles.lift} style={{ color: exp.improved ? 'var(--green)' : 'var(--text2)' }}>
                 {exp.lift >= 0 ? '▲' : '▼'} {exp.lift >= 0 ? '+' : ''}{exp.lift} visibility
                 <span className={styles.ci}> (95% CI {exp.lift_ci_low >= 0 ? '+' : ''}{exp.lift_ci_low} to {exp.lift_ci_high >= 0 ? '+' : ''}{exp.lift_ci_high})</span>
-                {' — '}
+                {': '}
                 {exp.significant
                   ? (exp.improved ? 'statistically significant improvement' : 'significant change')
                   : 'not statistically significant'}

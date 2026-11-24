@@ -24,7 +24,18 @@ _REASON = {
 
 
 def _friendly(status: int) -> str:
-    return f"HTTP {status} — {_REASON.get(status, 'request failed')}"
+    return f"HTTP {status}: {_REASON.get(status, 'request failed')}"
+
+
+# Auth and not-found errors are permanent for the session (a bad key or a wrong
+# model id never recovers), so once we see one we mark the model "dead" and skip it
+# instantly on later calls instead of retrying it on every request. We deliberately
+# do NOT do this for 429: Groq's models share one account rate limit and a burst
+# clears within seconds, so a transient 429 must not poison a model for the whole
+# run. A 429 is simply retried per-call and that one call fails if it persists.
+# Restart the backend to clear the dead set.
+_PERMANENT_DEAD = {401, 403, 404}
+_dead_models: dict[str, str] = {}   # model_id -> friendly reason
 
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
@@ -123,6 +134,10 @@ async def query_model(
     if fn is None:
         return ProviderResponse(**base, text="", ok=False, error="no client for provider")
 
+    # Skip a model already known to be auth/not-found-dead this session (no call).
+    if meta["id"] in _dead_models:
+        return ProviderResponse(**base, text="", ok=False, error=_dead_models[meta["id"]])
+
     temp = settings.QUERY_TEMPERATURE if temperature is None else temperature
     grd = settings.GROUNDING_ENABLED if grounded is None else grounded
 
@@ -140,10 +155,16 @@ async def query_model(
         except httpx.HTTPStatusError as e:
             status = e.response.status_code if e.response is not None else 0
             last_err = _friendly(status)
-            if status not in RETRY_STATUS:
+            # Auth / not-found never recover this session: mark dead and stop now.
+            if status in _PERMANENT_DEAD:
+                _dead_models[meta["id"]] = last_err
                 break
+            if status not in RETRY_STATUS:   # e.g. 400: fail fast, not dead
+                break
+            # else retryable (429 / 5xx): fall through to the back-off below
         except (httpx.TransportError, httpx.TimeoutException):
             last_err = "network error"
+            last_status = 0
         except Exception as e:
             last_err = str(e)
             break

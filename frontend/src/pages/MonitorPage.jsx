@@ -24,6 +24,8 @@ export default function MonitorPage({ analysisData }) {
   const [brand, setBrand]       = useState(analysisData?.brand || '')
   const [region, setRegion]     = useState('global')
   const [prompts, setPrompts]   = useState(new Set(['Top AI companies']))
+  const [custom,  setCustom]    = useState([])
+  const [cInput,  setCInput]    = useState('')
   const [interval, setInterval] = useState(1440)
   const [threshold, setThreshold] = useState(10)
   const [busy, setBusy]         = useState(false)
@@ -40,6 +42,16 @@ export default function MonitorPage({ analysisData }) {
 
   function toggle(p) {
     setPrompts(prev => { const n = new Set(prev); n.has(p) ? n.delete(p) : n.add(p); return n })
+  }
+
+  const allPrompts = [...PROMPT_TEMPLATES, ...custom]
+
+  function addCustom() {
+    const p = cInput.trim()
+    if (!p) return
+    if (!custom.includes(p) && !PROMPT_TEMPLATES.includes(p)) setCustom(prev => [...prev, p])
+    setPrompts(prev => new Set(prev).add(p))
+    setCInput('')
   }
 
   async function create() {
@@ -67,7 +79,7 @@ export default function MonitorPage({ analysisData }) {
     <div>
       {/* Create monitor */}
       <div className={styles.panel}>
-        <p className={styles.panelTitle}>// Schedule a monitor — re-runs automatically and alerts on visibility drift</p>
+        <p className={styles.panelTitle}>// Schedule a monitor that re-runs automatically and alerts on visibility drift</p>
         <div className={styles.row}>
           <div className={styles.field}>
             <label className={styles.label}>Brand</label>
@@ -95,9 +107,16 @@ export default function MonitorPage({ analysisData }) {
         </div>
         <div className={styles.tagsRow}>
           <span className={styles.tagsLabel}>PROMPTS:</span>
-          {PROMPT_TEMPLATES.map(p => (
+          {allPrompts.map(p => (
             <button key={p} className={`${styles.tag} ${prompts.has(p) ? styles.tagActive : ''}`} onClick={() => toggle(p)}>{p}</button>
           ))}
+          <input
+            className={styles.customInput}
+            value={cInput}
+            onChange={e => setCInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCustom())}
+            placeholder="+ add your own query"
+          />
           {competitors.length > 0 && <span className={styles.hint}>competitors: {competitors.join(', ')}</span>}
         </div>
       </div>
@@ -129,7 +148,7 @@ export default function MonitorPage({ analysisData }) {
                 <span className={styles.mMeta}>{m.region} · every {m.interval_minutes}m · drop {'>'}{m.drop_threshold}</span>
               </div>
               <div className={styles.mActions}>
-                <span className={styles.mScore}>{m.baseline_score ?? '—'}</span>
+                <span className={styles.mScore}>{m.baseline_score ?? 'n/a'}</span>
                 <button className={styles.sBtn} onClick={() => act(() => updateMonitor(m.id, { enabled: !m.enabled }))}>
                   {m.enabled ? '⏸ Pause' : '▶ Resume'}
                 </button>

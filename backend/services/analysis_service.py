@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 
 from config import settings
 from providers import active_models
-from services.query_engine import run_queries
+from services.query_engine import run_queries, run_regions
 from services import metrics
 from services.citations import aggregate_citations
 from models.schemas import (
@@ -138,15 +138,18 @@ async def run_real_analysis(brand, region, prompts, competitors=None) -> tuple[A
 
 
 async def _geo_sweep(brand, prompts, models) -> list[GeoVisibility]:
-    """Cheap cross-region visibility using one representative model to respect free tiers.
-    Prefers a fast, reliable Groq model (Gemini's free tier is slow/503-prone and
-    the sweep runs it across every region)."""
+    """Cheap cross-region visibility using one representative model to respect free
+    tiers. Prefers a fast, reliable Groq model, and sweeps every region in parallel
+    (one shared pass) rather than one blocking request per region."""
     rep = [next((m for m in models if m["provider"] == "groq"), models[0])]
     aliases = brand_aliases(brand)
+    # One representative prompt is enough to gauge regional variation, and it keeps
+    # the sweep cheap (regions x 1 prompt instead of regions x every prompt).
+    sweep_prompts = prompts[:1] or prompts
+    by_region = await run_regions(sweep_prompts, GEO_SWEEP, settings.GEO_RUNS_PER_PROMPT, rep)
     out = []
     for reg in GEO_SWEEP:
-        resp = await run_queries(prompts, reg, settings.GEO_RUNS_PER_PROMPT, rep)
-        ok = [r for r in resp if r["ok"]]
+        ok = [r for r in by_region.get(reg, []) if r["ok"]]
         scores = [metrics.response_metrics(r["text"], aliases)["visibility_score"] for r in ok]
         label, flag = REGION_META.get(reg, (reg, "🏳️"))
         out.append(GeoVisibility(region=label, flag=flag, score=round(statistics.mean(scores), 1) if scores else 0.0))

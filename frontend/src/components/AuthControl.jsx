@@ -45,7 +45,7 @@ export default function AuthControl({ user, onAuth }) {
         <div className={styles.overlay} onClick={() => setOpen(false)}>
           <form className={styles.modal} onClick={e => e.stopPropagation()} onSubmit={submit}>
             <p className={styles.title}>{mode === 'login' ? 'Sign in' : 'Create account'}</p>
-            <p className={styles.sub}>Private history & monitors. Optional — the app works without it.</p>
+            <p className={styles.sub}>Private history and monitors. Optional, the app works without signing in.</p>
             <input className={styles.input} type="email" placeholder="Email" value={email}
                    onChange={e => setEmail(e.target.value)} required autoFocus />
             <input className={styles.input} type="password" placeholder="Password (min 6 chars)" value={pw}
