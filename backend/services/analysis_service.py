@@ -138,15 +138,32 @@ async def run_real_analysis(brand, region, prompts, competitors=None) -> tuple[A
 
 
 async def _geo_sweep(brand, prompts, models) -> list[GeoVisibility]:
-    """Cheap cross-region visibility using one representative model to respect free
-    tiers. Prefers a fast, reliable Groq model, and sweeps every region in parallel
-    (one shared pass) rather than one blocking request per region."""
-    rep = [next((m for m in models if m["provider"] == "groq"), models[0])]
+    """Cross-region visibility using one representative model, swept in parallel.
+
+    Reliability on free tiers is the hard part here. The main analysis is Groq-heavy
+    (three Groq models vs one Gemini), so Groq's shared per-minute budget is usually
+    spent by the time the sweep runs and the regions 429. So we sweep on Gemini
+    (separate quota), and for any region whose call still fails we retry it once on
+    Groq. A region therefore scores 0 only when the brand is genuinely not mentioned
+    in that region's answers, not because an API call happened to drop."""
+    gem = next((m for m in models if m["provider"] == "google"), None)
+    groq = next((m for m in models if m["provider"] == "groq"), None)
+    primary = gem or groq or models[0]
+    fallback = (groq if primary is gem else gem) or None
     aliases = brand_aliases(brand)
     # One representative prompt is enough to gauge regional variation, and it keeps
     # the sweep cheap (regions x 1 prompt instead of regions x every prompt).
     sweep_prompts = prompts[:1] or prompts
-    by_region = await run_regions(sweep_prompts, GEO_SWEEP, settings.GEO_RUNS_PER_PROMPT, rep)
+
+    by_region = await run_regions(sweep_prompts, GEO_SWEEP, settings.GEO_RUNS_PER_PROMPT, [primary])
+    # Retry only the regions that got no usable response, on the other provider.
+    failed = [reg for reg in GEO_SWEEP if not any(r["ok"] for r in by_region.get(reg, []))]
+    if failed and fallback is not None:
+        retry = await run_regions(sweep_prompts, failed, settings.GEO_RUNS_PER_PROMPT, [fallback])
+        for reg in failed:
+            if any(r["ok"] for r in retry.get(reg, [])):
+                by_region[reg] = retry[reg]
+
     out = []
     for reg in GEO_SWEEP:
         ok = [r for r in by_region.get(reg, []) if r["ok"]]
