@@ -29,16 +29,45 @@ _STAT_RE = re.compile(r"\b\d+(\.\d+)?\s?(%|percent|million|billion|users|custome
 _DEF_RE = re.compile(r"\b(is|are|provides|offers|enables|is a|is the|helps)\b", re.I)
 
 
+# Honest, self-identifying crawler UA (the "Mozilla/5.0 (compatible; …)" form is
+# the long-standing convention for well-behaved bots, e.g. Googlebot). We send the
+# normal Accept headers a client would, but we do NOT impersonate a specific
+# browser to defeat bot protection: sites that block all automated access (many
+# large retail sites behind Akamai/Cloudflare do) are reported honestly instead.
+_FETCH_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (compatible; GEOVisibilityTracker/1.0; +https://github.com/SakashSrivastava/GEO-Visibility-Track)",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+}
+
+
 async def fetch_site(url: str) -> dict:
     if not url.startswith(("http://", "https://")):
         url = "https://" + url
     try:
         async with httpx.AsyncClient(timeout=15, follow_redirects=True,
-                                     headers={"User-Agent": "GEO-Visibility-Tracker/1.0"}) as c:
+                                     headers=_FETCH_HEADERS) as c:
             r = await c.get(url)
             return {"ok": True, "status": r.status_code, "html": r.text, "url": str(r.url)}
     except Exception as e:
         return {"ok": False, "status": None, "html": "", "url": url, "error": str(e)}
+
+
+def _fetch_error(status, raw_error: str | None) -> str:
+    """A clear, honest message for a page we could not read."""
+    if status in (401, 403):
+        return ("this site blocks automated fetching (HTTP {}). Many large sites do. "
+                "Try auditing your own site, or a page that is not bot-protected."
+                .format(status))
+    if status == 404:
+        return "page not found (HTTP 404). Check the URL."
+    if status == 429:
+        return "the site rate-limited the request (HTTP 429). Try again shortly."
+    if status and status >= 500:
+        return f"the site returned a server error (HTTP {status}). Try again later."
+    if status and status >= 400:
+        return f"the site returned HTTP {status}."
+    return raw_error or "the site could not be reached."
 
 
 def audit_html(url: str, html: str) -> dict:
@@ -111,7 +140,7 @@ async def run_audit(url: str) -> dict:
     if not site["ok"] or (site["status"] and site["status"] >= 400):
         return {"url": url, "fetched": False, "status": site["status"], "geo_score": 0.0,
                 "signals": [], "schema_types": [], "word_count": 0, "text_excerpt": "",
-                "title": "", "error": site.get("error") or f"HTTP {site['status']}"}
+                "title": "", "error": _fetch_error(site["status"], site.get("error"))}
     out = audit_html(site["url"], site["html"])
     out["status"] = site["status"]
     return out
