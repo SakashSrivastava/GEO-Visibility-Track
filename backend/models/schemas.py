@@ -38,6 +38,8 @@ class GeoVisibility(BaseModel):
     region: str
     flag: str
     score: float
+    measured: bool = True   # False when every call for this region failed (rate-limited),
+                            # so the UI can show "no data" instead of a misleading 0
 
 
 class CompetitorShare(BaseModel):         # Feature 1

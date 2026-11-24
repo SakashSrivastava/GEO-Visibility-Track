@@ -25,6 +25,15 @@
   font-size: 11px;
   color: var(--text2);
   font-family: var(--font-mono);
+  flex-wrap: wrap;
+}
+
+.note {
+  margin-top: 12px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text3);
+  font-style: italic;
 }
 
 .dot {

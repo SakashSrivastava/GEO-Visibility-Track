@@ -100,6 +100,39 @@ async def run_regions(prompts: list[str], regions: list[str], runs: int, models:
     return results
 
 
+async def run_region_assignments(prompts: list[str], assignments: list[tuple[dict, str]], runs: int):
+    """
+    Run a specific (model -> region) assignment, all under one shared set of caps.
+    Used by the geo sweep to spread regions across different models so no single
+    model exceeds its free-tier per-minute rate. Returns { region: [ row dicts ] }.
+    """
+    from collections import defaultdict
+    sem = asyncio.Semaphore(settings.MAX_CONCURRENCY)
+    psem = _provider_sems()
+    results: dict[str, list] = defaultdict(list)
+
+    async with httpx.AsyncClient(timeout=settings.REQUEST_TIMEOUT) as client:
+        async def one(meta, region, prompt, run):
+            query = build_query(prompt, region)
+            async with sem, psem[meta["provider"]]:
+                resp: ProviderResponse = await query_model(client, meta, query)
+            return region, {
+                "model_id": meta["id"], "prompt": prompt, "query": query, "run": run,
+                "text": resp.text, "ok": resp.ok, "error": resp.error,
+                "citations": resp.citations,
+            }
+
+        tasks = [
+            one(meta, region, prompt, run)
+            for (meta, region) in assignments
+            for prompt in prompts
+            for run in range(runs)
+        ]
+        for region, row in await asyncio.gather(*tasks):
+            results[region].append(row)
+    return results
+
+
 async def run_custom(items: list[tuple[str, str]], runs: int, models: list[dict],
                      temperature: float | None = None, grounded: bool | None = None):
     """

@@ -7,14 +7,13 @@ Assembles a full AnalysisResponse from REAL model responses:
 All numbers trace back to text a model actually produced; nothing is simulated.
 """
 import re
-import asyncio
 import statistics
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 
 from config import settings
 from providers import active_models
-from services.query_engine import run_queries, run_regions
+from services.query_engine import run_queries, run_region_assignments
 from services import metrics
 from services.citations import aggregate_citations
 from models.schemas import (
@@ -139,52 +138,50 @@ async def run_real_analysis(brand, region, prompts, competitors=None) -> tuple[A
 
 
 async def _geo_sweep(brand, prompts, models) -> list[GeoVisibility]:
-    """Cross-region visibility using one representative model, swept in parallel.
+    """Cross-region visibility index.
 
-    Reliability on free tiers is the hard part here. The main analysis is Groq-heavy
-    (three Groq models vs one Gemini), so Groq's shared per-minute budget is usually
-    spent by the time the sweep runs and the regions 429. So we sweep on Gemini
-    (separate quota), and for any region whose call still fails we retry it once on
-    Groq. A region therefore scores 0 only when the brand is genuinely not mentioned
-    in that region's answers, not because an API call happened to drop."""
-    gem = next((m for m in models if m["provider"] == "google"), None)
-    groq = next((m for m in models if m["provider"] == "groq"), None)
-    primary = gem or groq or models[0]
-    other = (groq if primary is gem else gem)
+    The hard part on free tiers is that the sweep runs right after the main analysis
+    has already spent much of each model's per-minute budget. Sending all six region
+    calls to a single model then exhausts that model's remaining budget partway
+    through, so the later regions 429 and show a false 0. Instead we SPREAD the
+    regions across every active model (round-robin): each model handles only one or
+    two regions, which keeps every provider comfortably under its rate limit and
+    lets the whole sweep run in parallel. Any region that still fails is retried once
+    on the next model. A region is left at 0 only when the brand is genuinely not
+    mentioned in that region's answers.
+
+    Trade-off: different regions are measured by different models, so this is a rough
+    comparative index rather than a single-model measurement."""
     aliases = brand_aliases(brand)
-    # One representative prompt is enough to gauge regional variation, and it keeps
-    # the sweep cheap (regions x 1 prompt instead of regions x every prompt).
+    # One representative prompt keeps the sweep cheap (regions x 1 prompt).
     sweep_prompts = prompts[:1] or prompts
+    regions = list(GEO_SWEEP)
+    n = len(models)
 
-    # The sweep runs after the main analysis has already loaded the free tiers, so
-    # some regions get rate-limited on the first try. Retry just those regions with
-    # a short pause (so the per-minute quota window can recover) and then on the
-    # other provider. A region is left at 0 only when every attempt returned a real
-    # response in which the brand was simply not mentioned, not when calls dropped.
-    by_region: dict[str, list] = {}
-    pending = list(GEO_SWEEP)
-    attempts = [(primary, 0.0), (primary, 3.0), (other, 3.0)]
-    for model, pause in attempts:
-        if not pending or model is None:
-            continue
-        if pause:
-            await asyncio.sleep(pause)
-        res = await run_regions(sweep_prompts, pending, settings.GEO_RUNS_PER_PROMPT, [model])
-        still = []
-        for reg in pending:
-            if any(r["ok"] for r in res.get(reg, [])):
-                by_region[reg] = res[reg]          # got a usable response, keep it
-            else:
-                by_region.setdefault(reg, res.get(reg, []))
-                still.append(reg)                  # all failed, try again next round
-        pending = still
+    assignments = [(models[i % n], reg) for i, reg in enumerate(regions)]
+    by_region = await run_region_assignments(sweep_prompts, assignments, settings.GEO_RUNS_PER_PROMPT)
+
+    # Retry any region with no usable response on a different model.
+    failed = [reg for reg in regions if not any(r["ok"] for r in by_region.get(reg, []))]
+    if failed and n > 1:
+        retry_assign = [(models[(regions.index(reg) + 1) % n], reg) for reg in failed]
+        retry = await run_region_assignments(sweep_prompts, retry_assign, settings.GEO_RUNS_PER_PROMPT)
+        for reg in failed:
+            if any(r["ok"] for r in retry.get(reg, [])):
+                by_region[reg] = retry[reg]
 
     out = []
-    for reg in GEO_SWEEP:
+    for reg in regions:
         ok = [r for r in by_region.get(reg, []) if r["ok"]]
         scores = [metrics.response_metrics(r["text"], aliases)["visibility_score"] for r in ok]
         label, flag = REGION_META.get(reg, (reg, "🏳️"))
-        out.append(GeoVisibility(region=label, flag=flag, score=round(statistics.mean(scores), 1) if scores else 0.0))
+        # measured=False means every attempt for this region failed (rate limit),
+        # which is different from a real score of 0 (brand simply not mentioned).
+        out.append(GeoVisibility(
+            region=label, flag=flag,
+            score=round(statistics.mean(scores), 1) if scores else 0.0,
+            measured=bool(ok),
+        ))
     return out
 
 
